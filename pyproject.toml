@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "lego-wall-plotter"
+version = "0.1.0"
+description = ""
+authors = ["Berry van Someren"]
+readme = "README.md"
+packages = [{include = "lego_wall_plotter"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.24.2"
+svgwrite = "^1.4.3"
+svgpathtools = "^1.6.0"
+mindstorms = "^0.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
