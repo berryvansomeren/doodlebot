@@ -5,10 +5,14 @@ from os import getcwd
 from svgpathtools import Path, Line, disvg
 
 class Constants:
+
     # Canvas
-    CANVAS_SIZE_MM = ( 850, 561 )
-    ANCHOR_DISTANCE_MM = 1272
-    CANVAS_OFFSET_MM = ( 637, 1217 )
+    BOARD_SIZE = ( 900, 1250 )
+    LEFT_ANCHOR_OFFSET = ( 45, 33 )
+    RIGHT_ANCHOR_OFFSET = ( 865, 33 )
+    CANVAS_SIZE_MM = ( 210, 297 )
+    CANVAS_OFFSET_MM = ( 345, 335 )
+    PADDING_MM = 5 * 10
 
     # which ports are the motors connected to
     # Note that A is on the right hand side when the plotter hangs on the wall
@@ -41,9 +45,12 @@ def get_rope_length_deltas_mm( current_position, target_position ):
 
     # note that positions are in canvas space
     # rope lengths are in anchor space
-
-    left_anchor = ( 0, 0 )
-    right_anchor = ( Constants.ANCHOR_DISTANCE_MM, 0 )
+    # Note that we are working in anchor space, not board space
+    left_anchor = (0, 0)
+    right_anchor = (
+        Constants.RIGHT_ANCHOR_OFFSET[ 0 ] - Constants.LEFT_ANCHOR_OFFSET[ 0 ],
+        Constants.RIGHT_ANCHOR_OFFSET[ 1 ] - Constants.LEFT_ANCHOR_OFFSET[ 1 ],
+    )
 
     current_position_in_canvas_space = current_position + Constants.CANVAS_OFFSET_MM
     current_distance_to_left_anchor = distance( current_position_in_canvas_space, left_anchor )
@@ -75,19 +82,137 @@ def get_motor_settings_for_rope_lengths( delta_left_anchor, delta_right_anchor )
     # However, we are still only computing what our position should be,
     # If the motors are not exactly producing the expected rotations,
     # these computed numbers might still differ from reality.
-    new_position = (
-        ( left_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration,
-        ( right_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration,
+    left_distance = ( left_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
+    right_distance = ( right_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
+    rope_delta = ( left_distance, right_distance )
+
+    return left_speed, right_speed, duration, rope_delta
+
+
+def get_intersections( x0, y0, r0, x1, y1, r1 ) :
+    # circle 1: (x0, y0), radius r0
+    # circle 2: (x1, y1), radius r1
+
+    d = math.sqrt( (x1 - x0) ** 2 + (y1 - y0) ** 2 ) - 0.00001
+
+    # non-intersecting
+    if d > r0 + r1 :
+        return None
+    # One circle within other
+    if d < abs( r0 - r1 ) :
+        return None
+    # coincident circles
+    if d == 0 and r0 == r1 :
+        return None
+    else :
+        a = (r0 ** 2 - r1 ** 2 + d ** 2) / (2 * d)
+        h = math.sqrt( r0 ** 2 - a ** 2 )
+        x2 = x0 + a * (x1 - x0) / d
+        y2 = y0 + a * (y1 - y0) / d
+        x3 = x2 + h * (y1 - y0) / d
+        y3 = y2 - h * (x1 - x0) / d
+
+        x4 = x2 - h * (y1 - y0) / d
+        y4 = y2 + h * (x1 - x0) / d
+
+        return (x3, y3, x4, y4)
+
+
+def use_rope_delta_to_determine_actual_position( current_position, rope_delta ):
+    # Note that we are working in anchor space, not board space
+    left_anchor = (0, 0)
+    right_anchor = (
+        Constants.RIGHT_ANCHOR_OFFSET[ 0 ] - Constants.LEFT_ANCHOR_OFFSET[ 0 ],
+        Constants.RIGHT_ANCHOR_OFFSET[ 1 ] - Constants.LEFT_ANCHOR_OFFSET[ 1 ],
     )
 
-    return left_speed, right_speed, duration, new_position
+    current_position_in_canvas_space = current_position + Constants.CANVAS_OFFSET_MM
+    current_distance_to_left_anchor = distance( current_position_in_canvas_space, left_anchor )
+    current_distance_to_right_anchor = distance( current_position_in_canvas_space, right_anchor )
+
+    new_distance_to_left_anchor = current_distance_to_left_anchor + rope_delta[0]
+    new_distance_to_right_anchor = current_distance_to_right_anchor + rope_delta[1]
+
+    intersections = get_intersections( *left_anchor, new_distance_to_left_anchor, *right_anchor, new_distance_to_right_anchor )
+    i1x, i1y, i2x, i2y = intersections
+    if i1x > 0 and i1y > 0:
+        return i1x, i1y
+    else:
+        return i2x, i2y
+
+
+def convert_normalized_point_to_anchor_space( point ):
+    point_canvas_space = (
+        point[ 0 ] * (Constants.CANVAS_SIZE_MM[ 0 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 0 ] + Constants.PADDING_MM,
+        point[ 1 ] * (Constants.CANVAS_SIZE_MM[ 1 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.PADDING_MM
+    )
+    return point_canvas_space
 
 
 def create_preview_svg( svg_paths: list[ list[ tuple ] ], out_filename: str ) -> None :
+
+    # draw the board
+    board_paths = [[
+        ( 0, 0 ),
+        ( Constants.BOARD_SIZE[0], 0 ),
+        ( Constants.BOARD_SIZE[0], Constants.BOARD_SIZE[1] ),
+        ( 0, Constants.BOARD_SIZE[1] ),
+        ( 0, 0 )
+    ]]
+
+    # draw the two anchors
+    anchor_padding = 2
+    anchor_padding_offsets = [
+        ( -anchor_padding, -anchor_padding ),
+        (  anchor_padding, -anchor_padding ),
+        (  anchor_padding,  anchor_padding ),
+        ( -anchor_padding,  anchor_padding ),
+        ( -anchor_padding, -anchor_padding ),
+    ]
+    left_anchor_paths = []
+    for offset in anchor_padding_offsets:
+        left_anchor_paths.append(
+            (
+                Constants.LEFT_ANCHOR_OFFSET[ 0 ] + offset[ 0 ],
+                Constants.LEFT_ANCHOR_OFFSET[ 1 ] + offset[ 1 ]
+            )
+        )
+    right_anchor_paths = [ ]
+    for offset in anchor_padding_offsets :
+        right_anchor_paths.append(
+            (
+                Constants.RIGHT_ANCHOR_OFFSET[ 0 ] + offset[ 0 ],
+                Constants.RIGHT_ANCHOR_OFFSET[ 1 ] + offset[ 1 ]
+            )
+        )
+    anchor_paths = [ left_anchor_paths, right_anchor_paths ]
+
+    # Draw the canvas space
+    canvas_paths = [[
+        Constants.CANVAS_OFFSET_MM,
+        (
+            Constants.CANVAS_OFFSET_MM[0] + Constants.CANVAS_SIZE_MM[0],
+            Constants.CANVAS_OFFSET_MM[1]
+        ),
+        (
+            Constants.CANVAS_OFFSET_MM[ 0 ] + Constants.CANVAS_SIZE_MM[ 0 ],
+            Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.CANVAS_SIZE_MM[ 1 ]
+        ),
+        (
+            Constants.CANVAS_OFFSET_MM[ 0 ],
+            Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.CANVAS_SIZE_MM[ 1 ]
+        ),
+        Constants.CANVAS_OFFSET_MM
+    ]]
+
+    # Combine all previous components to define the full scene
+    all_paths = board_paths + anchor_paths + canvas_paths + svg_paths
+
     # create preview svg
     preview = [ ]
     logging.info( f"Writing preview file {out_filename}." )
-    for path in svg_paths :
+
+    for path in all_paths :
         preview_p = Path()
         preview.append( preview_p )
         p0 = path[ 0 ]
@@ -107,21 +232,22 @@ class MockPlotter :
     def move_to( self, target_position ) :
         deltas = get_rope_length_deltas_mm( self.position, target_position )
         motor_settings = get_motor_settings_for_rope_lengths( *deltas )
-        left_speed, right_speed, duration, new_position = motor_settings
+        left_speed, right_speed, duration, rope_delta = motor_settings
+        new_position = use_rope_delta_to_determine_actual_position( self.position, rope_delta )
+        self.position = new_position
         logging.info( "-" * 64 )
         logging.info( f"Current: {self.position}" )
         logging.info( f"Target: {target_position}" )
-        logging.info( f"New: {new_position}" )
-        logging.info( f"Move is off by {distance( self.position, new_position )} mm!")
-        self.position = new_position
+        logging.info( f"Move is off by {distance( new_position, target_position )} mm!")
+
 
     def plot_paths( self, svg_paths ) :
         plot_paths = [ ]
         for path in svg_paths :
-            self.move_to( path[ 0 ] )
-            current_plot_path = [ self.position ]
-            for point in path[ 1 : ] :
-                self.move_to( point )
+            current_plot_path = []
+            for point in path:
+                point_in_anchor_space = convert_normalized_point_to_anchor_space( point )
+                self.move_to( point_in_anchor_space )
                 current_plot_path.append( self.position )
             plot_paths.append( current_plot_path )
         create_preview_svg( plot_paths, self.out_file_name )

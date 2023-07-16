@@ -6,9 +6,11 @@ import math
 
 class Constants:
     # Canvas
-    CANVAS_SIZE_MM = ( 850, 561 )
-    ANCHOR_DISTANCE_MM = 1272
-    CANVAS_OFFSET_MM = ( 637, 1217 )
+    PADDING_MM = 500
+    CANVAS_SIZE_MM = ( 3000, 3000 )
+    ANCHOR_DISTANCE_MM = 4000
+    ANCHOR_HEIGHT_MM = 5000
+    CANVAS_OFFSET_MM = ( 500, 500 )
 
     # which ports are the motors connected to
     # Note that A is on the right hand side when the plotter hangs on the wall
@@ -70,17 +72,17 @@ def get_motor_settings_for_rope_lengths( delta_left_anchor, delta_right_anchor )
         right_speed = round( ( delta_right_anchor / delta_left_anchor ) * 100 )
         duration = delta_left_anchor / Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
 
-    # Due to rounding errors we might not end up at exactly the right position
-    # We compensate for the error or subsequent updates, so that it least does not accumulate
-    # However, we are still only computing what our position should be,
-    # If the motors are not exactly producing the expected rotations,
-    # these computed numbers might still differ from reality.
-    new_position = (
-        ( left_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration,
-        ( right_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration,
-    )
+    # Ignoring rounding errors, as the mock plotter has shown they are very small
+    return left_speed, right_speed, duration
 
-    return left_speed, right_speed, duration, new_position
+
+def convert_normalized_point_to_anchor_space( point ):
+    point_canvas_space = (
+        point[ 0 ] * (Constants.CANVAS_SIZE_MM[ 0 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 0 ] + Constants.PADDING_MM,
+        point[ 1 ] * (Constants.CANVAS_SIZE_MM[ 1 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.PADDING_MM
+    )
+    return point_canvas_space
+
 
 class LegoPenController:
     def __init__(self):
@@ -115,16 +117,18 @@ class LegoPlotter:
     def move_to( self, target_position ):
         deltas = get_rope_length_deltas_mm( self.position, target_position )
         motor_settings = get_motor_settings_for_rope_lengths( *deltas )
-        left_speed, right_speed, duration, new_position = motor_settings
+        left_speed, right_speed, duration = motor_settings
         self.motor_controller.move( left_speed, right_speed, duration )
-        self.position = new_position
+        self.position = target_position
 
     def plot_paths(self, svg_paths):
         for path in svg_paths:
-            self.move_to( path[0] )
+            # move to the first point of the path before starting to draw the rest
+            self.move_to( convert_normalized_point_to_anchor_space( path[0] ) )
             self.pen_controller.start_drawing()
+            # now draw the rest
             for point in path[1:]:
-                self.move_to( point )
+                self.move_to( convert_normalized_point_to_anchor_space( point ) )
             self.pen_controller.stop_drawing()
 
 
