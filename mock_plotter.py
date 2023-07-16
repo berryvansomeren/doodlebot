@@ -142,9 +142,14 @@ def use_rope_delta_to_determine_actual_position( current_position, rope_delta ):
 
 
 def convert_normalized_point_to_anchor_space( point ):
+
+    min_extent = min( Constants.CANVAS_SIZE_MM ) - 2 * Constants.PADDING_MM
+    min_x = ( 0.5 * Constants.CANVAS_SIZE_MM[0] ) - ( 0.5 * min_extent )
+    min_y = ( 0.5 * Constants.CANVAS_SIZE_MM[1] ) - ( 0.5 * min_extent )
+
     point_canvas_space = (
-        point[ 0 ] * (Constants.CANVAS_SIZE_MM[ 0 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 0 ] + Constants.PADDING_MM,
-        point[ 1 ] * (Constants.CANVAS_SIZE_MM[ 1 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.PADDING_MM
+        min_x + point[ 0 ] * min_extent + Constants.CANVAS_OFFSET_MM[0],
+        min_y + point[ 1 ] * min_extent + Constants.CANVAS_OFFSET_MM[1]
     )
     return point_canvas_space
 
