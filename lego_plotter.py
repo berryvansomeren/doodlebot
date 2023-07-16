@@ -6,11 +6,12 @@ import math
 
 class Constants:
     # Canvas
-    PADDING_MM = 500
-    CANVAS_SIZE_MM = ( 3000, 3000 )
-    ANCHOR_DISTANCE_MM = 4000
-    ANCHOR_HEIGHT_MM = 5000
-    CANVAS_OFFSET_MM = ( 500, 500 )
+    BOARD_SIZE = (900, 1250)
+    LEFT_ANCHOR_OFFSET = (45, 33)
+    RIGHT_ANCHOR_OFFSET = (865, 33)
+    CANVAS_SIZE_MM = (210, 297)
+    CANVAS_OFFSET_MM = (345, 335)
+    PADDING_MM = 5 * 10
 
     # which ports are the motors connected to
     # Note that A is on the right hand side when the plotter hangs on the wall
@@ -43,9 +44,12 @@ def get_rope_length_deltas_mm( current_position, target_position ):
 
     # note that positions are in canvas space
     # rope lengths are in anchor space
-
-    left_anchor = ( 0, 0 )
-    right_anchor = ( Constants.ANCHOR_DISTANCE_MM, 0 )
+    # Note that we are working in anchor space, not board space
+    left_anchor = (0, 0)
+    right_anchor = (
+        Constants.RIGHT_ANCHOR_OFFSET[ 0 ] - Constants.LEFT_ANCHOR_OFFSET[ 0 ],
+        Constants.RIGHT_ANCHOR_OFFSET[ 1 ] - Constants.LEFT_ANCHOR_OFFSET[ 1 ],
+    )
 
     current_position_in_canvas_space = current_position + Constants.CANVAS_OFFSET_MM
     current_distance_to_left_anchor = distance( current_position_in_canvas_space, left_anchor )
@@ -77,9 +81,14 @@ def get_motor_settings_for_rope_lengths( delta_left_anchor, delta_right_anchor )
 
 
 def convert_normalized_point_to_anchor_space( point ):
+
+    min_extent = min( Constants.CANVAS_SIZE_MM ) - 2 * Constants.PADDING_MM
+    min_x = ( 0.5 * Constants.CANVAS_SIZE_MM[0] ) - ( 0.5 * min_extent )
+    min_y = ( 0.5 * Constants.CANVAS_SIZE_MM[1] ) - ( 0.5 * min_extent )
+
     point_canvas_space = (
-        point[ 0 ] * (Constants.CANVAS_SIZE_MM[ 0 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 0 ] + Constants.PADDING_MM,
-        point[ 1 ] * (Constants.CANVAS_SIZE_MM[ 1 ] - 2 * Constants.PADDING_MM) + Constants.CANVAS_OFFSET_MM[ 1 ] + Constants.PADDING_MM
+        min_x + point[ 0 ] * min_extent + Constants.CANVAS_OFFSET_MM[0],
+        min_y + point[ 1 ] * min_extent + Constants.CANVAS_OFFSET_MM[1]
     )
     return point_canvas_space
 
