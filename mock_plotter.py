@@ -31,7 +31,7 @@ class Constants:
 
     # How motor speed affects rope consumption
     # this value is how much mm of rope is consumed by running a motor at 100% speed for one second
-    ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM = 1000
+    ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM = 17
 
 
 def distance( v1, v2 ):
@@ -235,14 +235,15 @@ class MockPlotter :
         self.position = 0, 0
 
     def move_to( self, target_position ) :
+        target_distance = distance( self.position, target_position )
         deltas = get_rope_length_deltas_mm( self.position, target_position )
         motor_settings = get_motor_settings_for_rope_lengths( *deltas )
         left_speed, right_speed, duration, rope_delta = motor_settings
         new_position = use_rope_delta_to_determine_actual_position( self.position, rope_delta )
         self.position = new_position
         logging.info( "-" * 64 )
-        logging.info( f"Current: {self.position}" )
-        logging.info( f"Target: {target_position}" )
+        logging.info( f"Target Distance: {target_distance} mm!" )
+        logging.info( f"Duration: {duration} s!" )
         logging.info( f"Move is off by {distance( new_position, target_position )} mm!")
 
 
