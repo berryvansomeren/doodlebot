@@ -1,20 +1,16 @@
-import argparse
 import logging
 import math
-from os import getcwd
 
-from svgpathtools import svg2paths, Path, Line, disvg
+from svgpathtools import svg2paths, Path
+
+from lego_wall_plotter.host.motor_instructions import PlotPack
 
 
-def parse_args():
-    parser = argparse.ArgumentParser( description = 'Convert a svg to wallplotter format' )
-    parser.add_argument( 'file', type = str, help = 'svg file to convert' )
-    parser.add_argument( 'out', type = str, help = 'output folder', default = '' )
-    parser.add_argument( '-s', '--sampling', type = float, default = 1, help = 'Path sampling factor. Decreasing gives rougher corners but decreases filesize. Default: 1' )
-    # 4 decimals = 1mm precision at 100cm canvas size
-    parser.add_argument( '-p', '--precision', type = int, default = 4, help = 'how many decimals in output. Default: 4' )
-    args = parser.parse_args()
-    return args
+"""
+Functions that help convert arbitrary SVG files to a format we can easily work with: PlotPack.
+"""
+
+#todo: This code would be easier to work with, if we would first translate the SVG to world-space(board-space)
 
 
 def get_continuous_paths_from_file( file ) -> list[ Path ]:
@@ -23,7 +19,7 @@ def get_continuous_paths_from_file( file ) -> list[ Path ]:
     # here we pre-filter them to make every single Path element continuous
 
     logging.info( f"Parsing file {file}." )
-    paths, attributes = svg2paths(args.file)
+    paths, attributes = svg2paths(file)
 
     paths_continuous = []
     for disc_path in paths:
@@ -34,7 +30,7 @@ def get_continuous_paths_from_file( file ) -> list[ Path ]:
     return paths_continuous
 
 
-def get_point_based_paths( paths : list[ Path ], sampling : float ) -> list[ list[ tuple ] ]:
+def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling : float ) -> PlotPack:
 
     # SVGs can contain complex things like Arcs and Curves,
     # Here we convert them all to sequences of points
@@ -72,7 +68,8 @@ def get_point_based_paths( paths : list[ Path ], sampling : float ) -> list[ lis
 
     return point_based_paths
 
-def get_normalized_paths( paths : list[ list[ tuple ] ], n_digits : int ) -> list[list[tuple]]:
+
+def make_normalized_paths( paths : PlotPack, n_digits : int ) -> PlotPack:
     logging.info( f"Normalizing paths." )
 
     # determine bounds
@@ -103,7 +100,7 @@ def get_normalized_paths( paths : list[ list[ tuple ] ], n_digits : int ) -> lis
     return normalized_paths
 
 
-def sort_paths_by_successive_distance( paths : list[list[tuple]] ) -> list[list[tuple]]:
+def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
     # sort paths by distance between end of path n and start of path n+1
     # the reason to do this is to minimize travel distance,
     # which minimizes time, and room for error
@@ -129,36 +126,10 @@ def sort_paths_by_successive_distance( paths : list[list[tuple]] ) -> list[list[
     return result_sorted
 
 
-def create_preview_svg( svg_paths : list[list[tuple]], out_filename : str ) -> None:
-    # create preview svg
-    preview = [ ]
-    logging.info( f"Writing preview file {out_filename}." )
-    for path in svg_paths :
-        preview_p = Path()
-        preview.append( preview_p )
-        p0 = path[ 0 ]
-        for p1 in path[ 1 : ] :
-            preview_p.append( Line( complex( p0[0], p0[1] ), complex( p1[0], p1[1] ) ) )
-            p0 = p1
-
-    disvg( paths = preview, filename = f"{getcwd()}/{out_filename}", margin_size = 0 )
-    logging.info( f"Writing preview file {out_filename} - DONE!" )
-
-
-def convert_svg_file_to_point_based_paths( file : str, sampling : float, precision : int ) -> list[list[tuple]]:
+def convert_svg_file_to_plot_pack( file : str, sampling : float, precision : int ) -> PlotPack:
     # every path in the result will be a continuously connected series of points
     paths = get_continuous_paths_from_file( file )
-    paths_point_based = get_point_based_paths( paths, sampling )
-    paths_normalized = get_normalized_paths( paths_point_based, precision )
+    paths_point_based = make_plot_pack_from_svg_paths( paths, sampling )
+    paths_normalized = make_normalized_paths( paths_point_based, precision )
     paths_sorted = sort_paths_by_successive_distance( paths_normalized )
     return paths_sorted
-
-
-if __name__ =='__main__':
-    logging.basicConfig(level = logging.INFO)
-    args = parse_args()
-    paths_sorted = convert_svg_file_to_point_based_paths( args.file, args.sampling, args.precision )
-    create_preview_svg( paths_sorted, args.out )
-    logging.info(f"End result: {paths_sorted}")
-    logging.info("DONE!")
-

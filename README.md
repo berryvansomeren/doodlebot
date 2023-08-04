@@ -25,3 +25,12 @@ python voot/svgtools/convert.py voot/svgtools/svg/heart.svg voot/svgtools/out
 # Code for Lego Wallplotter
 
 For details/how to use visit https://voot.de/projects/lego-wallplotter
+
+
+
+
+
+
+
+- convert SVG should also produce a list of motorinstructions
+- the mock plotter must also accept a list of motorinstructions
