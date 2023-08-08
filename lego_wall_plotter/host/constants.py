@@ -15,3 +15,16 @@ class Constants:
     # How motor speed affects rope consumption
     # this value is how much mm of rope is consumed by running a motor at 100% speed for one second
     ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM = 17
+
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 460
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 557
+
+    PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM = 0 # mm
+    PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM = 22 # mm
+
+
+def get_initial_position() -> tuple[float, float]:
+    return (
+        Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM,
+        Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM,
+    )

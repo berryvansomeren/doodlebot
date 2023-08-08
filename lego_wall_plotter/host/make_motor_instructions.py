@@ -1,12 +1,12 @@
 import math
 import logging
 
-from lego_wall_plotter.host.constants import Constants
+from lego_wall_plotter.host.constants import Constants, get_initial_position
 from lego_wall_plotter.host.motor_instructions import MotorInstruction, PlotPack
 
 
 """
-Here we use PloPacks to create MotorInstructionsPack for the Device
+Here we use PlotPacks to create MotorInstructionsPack for the Device
 """
 
 
@@ -15,6 +15,10 @@ def distance( v1, v2 ) :
         ((v1[ 0 ] - v2[ 0 ]) ** 2) +
         ((v1[ 1 ] - v2[ 1 ]) ** 2)
     )
+
+
+def sign( v ) -> int:
+    return ( v > 0 ) - ( v < 0 )
 
 
 def get_rope_length_deltas_mm( current_position, target_position ) :
@@ -41,26 +45,44 @@ def get_rope_length_deltas_mm( current_position, target_position ) :
     return delta_left_anchor, delta_right_anchor
 
 
-def get_motor_settings_for_rope_lengths( delta_left_anchor, delta_right_anchor ) :
-    if delta_left_anchor < delta_right_anchor :
-        left_speed = round( (delta_left_anchor / delta_right_anchor) * 100 )
+def get_motor_instruction_for_rope_lengths( delta_left_anchor, delta_right_anchor ):
+
+    abs_delta_left_anchor = abs( delta_left_anchor )
+    abs_delta_right_anchor = abs( delta_right_anchor )
+
+    # first we need to determine relative speeds
+    # we will fix the signs afterward!
+    # We will set the motor for the larger distance at max speed,
+    # and set the speed for the other motor proportionally
+
+    if abs_delta_left_anchor < abs_delta_right_anchor:
+        left_speed = round( ( abs_delta_left_anchor / abs_delta_right_anchor ) * 100 )
         right_speed = 100
-        duration = delta_right_anchor / Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
+        duration = abs_delta_right_anchor / Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
     else :
         left_speed = 100
-        right_speed = round( (delta_right_anchor / delta_left_anchor) * 100 )
-        duration = delta_left_anchor / Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
+        right_speed = round( ( abs_delta_right_anchor / abs_delta_left_anchor ) * 100 )
+        duration = abs_delta_left_anchor / Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
+
+    left_speed *= sign( delta_left_anchor )
+    right_speed *= sign( delta_right_anchor )
 
     # Due to rounding errors we might not end up at exactly the right position
     # We compensate for the error or subsequent updates, so that it least does not accumulate
     # However, we are still only computing what our position should be,
     # If the motors are not exactly producing the expected rotations,
     # these computed numbers might still differ from reality.
-    left_distance = (left_speed / 100) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
-    right_distance = (right_speed / 100) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
-    rope_delta = (left_distance, right_distance)
+    left_distance = ( left_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
+    right_distance = ( right_speed / 100 ) * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM * duration
+    rope_delta = ( left_distance, right_distance )
 
-    return left_speed, right_speed, duration, rope_delta
+    motor_instruction = MotorInstruction(
+        left_speed = left_speed,
+        right_speed = right_speed,
+        duration = duration
+    )
+
+    return motor_instruction, rope_delta
 
 
 def get_intersections( x0, y0, r0, x1, y1, r1 ) :
@@ -129,39 +151,39 @@ def convert_normalized_point_to_anchor_space( point ) :
 
 
 def make_motor_instructions_for_plot_pack( plot_pack : PlotPack ):
-    position = 0, 0
+    position = get_initial_position()
     motor_instructions_pack = [ ]
     for i_plot_path, plot_path in enumerate( plot_pack ):
         motor_instructions_path = [ ]
         for i_plot_point, plot_point in enumerate( plot_path ):
+
             # determine target position
             target_position = convert_normalized_point_to_anchor_space( plot_point )
 
             # get motor settings
             target_distance = distance( position, target_position )
             deltas = get_rope_length_deltas_mm( position, target_position )
-            motor_settings = get_motor_settings_for_rope_lengths( *deltas )
-            left_speed, right_speed, duration, rope_delta = motor_settings
+            motor_instruction, rope_delta = get_motor_instruction_for_rope_lengths( *deltas )
 
             # update position
             new_position = use_rope_delta_to_determine_actual_position( position, rope_delta )
             position = new_position
 
-            # log some details
+            # check some errors
+
+            min_distance_threshold = 10
+            if target_distance < min_distance_threshold:
+                logging.info( "-" * 64 )
+                logging.info( f"Distance {target_distance} < {min_distance_threshold}, perhaps you need to use a larger sampling_distance! Found in in plot_path {i_plot_path}, plot_point {i_plot_point}" )
+
             error = distance( new_position, target_position )
             if error > 1:
                 logging.info( "-" * 64 )
                 logging.info( f"Error > 1 in plot_path {i_plot_path}, plot_point {i_plot_point}" )
                 logging.info( f"Target Distance: {target_distance} mm!" )
-                logging.info( f"Duration: {duration} s!" )
+                logging.info( f"Duration: {motor_instruction.duration} s!" )
                 logging.info( f"Move is off by {distance( new_position, target_position )} mm!" )
 
-            # store the motor instruction
-            motor_instruction = MotorInstruction(
-                left_speed = left_speed,
-                right_speed = right_speed,
-                duration = duration
-            )
             motor_instructions_path.append( motor_instruction )
         motor_instructions_pack.append( motor_instructions_path )
     return motor_instructions_pack

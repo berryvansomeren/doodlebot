@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from lego_wall_plotter.host.motor_instructions import convert_motor_instructions_pack_to_tuple_based
-from lego_wall_plotter.host.convert_svg_paths import convert_svg_file_to_plot_pack
+from lego_wall_plotter.host.convert_svg import convert_svg_file_to_plot_pack
 from lego_wall_plotter.host.make_motor_instructions import make_motor_instructions_for_plot_pack
 from lego_wall_plotter.host.make_preview import make_preview_for_motor_instructions, make_preview_for_plot_pack
 
@@ -17,12 +17,12 @@ def make_motor_instructions(
         out_file_preview_converted_svg : str,
         out_file_preview_motor_instructions : str,
         out_file_motor_instructions_pack : str,
-        sampling : float = 1,
+        sampling_distance : float = 40,
         precision : int = 4,
 ) -> None:
 
     # Take the SVG and convert it to our own format: PlotPack
-    plot_pack = convert_svg_file_to_plot_pack( in_file_svg, sampling, precision )
+    plot_pack = convert_svg_file_to_plot_pack( in_file_svg, sampling_distance, precision )
 
     # Create a preview of the converted SVG
     # ( This should be a piecewise linear approximation of the original )

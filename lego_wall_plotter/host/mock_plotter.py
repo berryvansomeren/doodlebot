@@ -1,4 +1,4 @@
-from lego_wall_plotter.host.constants import Constants
+from lego_wall_plotter.host.constants import Constants, get_initial_position
 from lego_wall_plotter.host.motor_instructions import MotorInstructionsPack, MotorInstruction, PlotPack, PlotPoint
 from lego_wall_plotter.host.make_motor_instructions import use_rope_delta_to_determine_actual_position
 
@@ -27,7 +27,7 @@ def determine_new_position_after_motor_instruction( current_position : PlotPoint
 
 class MockPlotter :
     def __init__( self ):
-        self.position = 0, 0
+        self.position = get_initial_position()
 
     def move( self, motor_instruction : MotorInstruction ) -> PlotPoint:
         new_position = determine_new_position_after_motor_instruction( self.position, motor_instruction )

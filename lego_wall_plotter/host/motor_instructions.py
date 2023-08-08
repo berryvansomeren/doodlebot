@@ -1,6 +1,3 @@
-from dataclasses import dataclass
-
-
 """
 These are the datastructures we like working with as a fundamental basis of our workflow.
 """
@@ -15,11 +12,22 @@ PlotPack = list[ PlotPath ]
 # ----------------------------------------------------------------
 # These types will be used in host code, where we can freely use modern Python
 
-@dataclass
 class MotorInstruction:
-    left_speed : int
-    right_speed : int
-    duration : float
+
+    def __init__(
+            self,
+            left_speed: int,
+            right_speed: int,
+            duration: float,
+    ):
+        assert -100 <= left_speed <= 100
+        assert -100 <= right_speed <= 100
+        assert duration > 0.0
+
+        self.left_speed = left_speed
+        self.right_speed = right_speed
+        self.duration = duration
+
 
 MotorInstructionsPath = list[ MotorInstruction ]
 MotorInstructionsPack = list[ MotorInstructionsPath ]

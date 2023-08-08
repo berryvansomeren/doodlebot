@@ -30,7 +30,7 @@ def get_continuous_paths_from_file( file ) -> list[ Path ]:
     return paths_continuous
 
 
-def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling : float ) -> PlotPack:
+def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling_distance : float ) -> PlotPack:
 
     # SVGs can contain complex things like Arcs and Curves,
     # Here we convert them all to sequences of points
@@ -39,7 +39,7 @@ def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling : float ) -> P
     for index, path in enumerate(paths):
         logging.info( f"Parsing path {index + 1}/{len(paths)}." )
 
-        steps = math.ceil(path.length() * sampling)
+        steps = math.ceil( path.length() / sampling_distance )
         if steps == 0:
             continue
 
@@ -126,10 +126,10 @@ def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
     return result_sorted
 
 
-def convert_svg_file_to_plot_pack( file : str, sampling : float, precision : int ) -> PlotPack:
+def convert_svg_file_to_plot_pack( file : str, sampling_distance : float, precision : int ) -> PlotPack:
     # every path in the result will be a continuously connected series of points
     paths = get_continuous_paths_from_file( file )
-    paths_point_based = make_plot_pack_from_svg_paths( paths, sampling )
+    paths_point_based = make_plot_pack_from_svg_paths( paths, sampling_distance )
     paths_normalized = make_normalized_paths( paths_point_based, precision )
     paths_sorted = sort_paths_by_successive_distance( paths_normalized )
     return paths_sorted
