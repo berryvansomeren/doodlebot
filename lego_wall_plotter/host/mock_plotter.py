@@ -1,51 +1,110 @@
-from lego_wall_plotter.host.constants import Constants, get_initial_position
-from lego_wall_plotter.host.motor_instructions import MotorInstructionsPack, MotorInstruction, PlotPack, PlotPoint
-from lego_wall_plotter.host.make_motor_instructions import use_rope_delta_to_determine_actual_position
+import math
+
+from lego_wall_plotter.host.constants import Constants
+from lego_wall_plotter.host.make_motor_instructions import get_initial_position, get_rope_lengths_for_point_in_board_space
+from lego_wall_plotter.host.base_types import (
+    MotorInstructionsPack,
+    MotorInstruction,
+    PlotPack,
+    PlotPoint,
+    BoardPoint,
+    RopeLengths
+)
 
 
 """
-The Mock Plotter should produce results like the LEGO plotter would,
-but as a safe virtual SVG, instead of wasting actual paper and manual effort. 
+The Mock Plotter basically reverses the operations of "make_motor_instructions",
+just to verify whether our logic (both ways) is sound,
+and produces what we envisioned.
+While the mock plotting code works much different from how the robot works, 
+it is a model of what we think the robot should work like, if we could ignore pwm management.
 """
 
 
-def determine_new_position_after_motor_instruction( current_position : PlotPoint, motor_instruction : MotorInstruction ) -> PlotPoint:
-    left_distance = (
-        ( motor_instruction.left_speed / 100 )
-        * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
-        * motor_instruction.duration
+def get_intersections( x0, y0, r0, x1, y1, r1 ) :
+    # circle 1: (x0, y0), radius r0
+    # circle 2: (x1, y1), radius r1
+
+    d = math.sqrt( (x1 - x0) ** 2 + (y1 - y0) ** 2 ) - 0.00001
+
+    # non-intersecting
+    if d > r0 + r1 :
+        return None
+    # One circle within other
+    if d < abs( r0 - r1 ) :
+        return None
+    # coincident circles
+    if d == 0 and r0 == r1 :
+        return None
+    else :
+        a = (r0 ** 2 - r1 ** 2 + d ** 2) / (2 * d)
+        h = math.sqrt( r0 ** 2 - a ** 2 )
+        x2 = x0 + a * (x1 - x0) / d
+        y2 = y0 + a * (y1 - y0) / d
+        x3 = x2 + h * (y1 - y0) / d
+        y3 = y2 - h * (x1 - x0) / d
+
+        x4 = x2 - h * (y1 - y0) / d
+        y4 = y2 + h * (x1 - x0) / d
+
+        return (x3, y3, x4, y4)
+
+
+def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> BoardPoint:
+    # Note that we are working in anchor space, not board space!!!
+    left_anchor = (0, 0)
+    right_anchor = (
+        Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ] - Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ],
+        Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ] - Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ],
     )
-    right_distance = (
-        ( motor_instruction.right_speed / 100 )
-        * Constants.ROPE_LENGTH_PER_ONE_MAX_POWER_SECOND_MM
-        * motor_instruction.duration
+
+    intersections = get_intersections(
+        *left_anchor, rope_lengths[0],
+        *right_anchor, rope_lengths[1]
     )
-    rope_delta = (left_distance, right_distance)
-    new_position = use_rope_delta_to_determine_actual_position( current_position, rope_delta )
-    return new_position
+
+    i1x, i1y, i2x, i2y = intersections
+    if i1x > 0 and i1y > 0:
+        x, y = i1x, i1y
+    else:
+        x, y = i2x, i2y
+
+    # Now that we have worked in anchor space, and will now convert to board space
+    return BoardPoint(
+        x + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ],
+        y + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ]
+    )
+
+def get_delta_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction ) -> RopeLengths:
+    return RopeLengths((
+        motor_instruction[ 0 ] * Constants.MM_PER_DEGREE,
+        motor_instruction[ 1 ] * Constants.MM_PER_DEGREE
+    ))
 
 
-class MockPlotter :
-    def __init__( self ):
-        self.position = get_initial_position()
-
-    def move( self, motor_instruction : MotorInstruction ) -> PlotPoint:
-        new_position = determine_new_position_after_motor_instruction( self.position, motor_instruction )
-        self.position = new_position
-        return new_position
-
-    def plot( self, motor_instruction_pack : MotorInstructionsPack ) -> PlotPack:
-        plot_pack = [ ]
-        for motor_instruction_path in motor_instruction_pack :
-            current_plot_path = []
-            for motor_instruction in motor_instruction_path:
-                new_position = self.move( motor_instruction )
-                current_plot_path.append( new_position )
-            plot_pack.append( current_plot_path )
-        return plot_pack
+def get_target_rope_lengths( current_rope_lengths : RopeLengths, delta_rope_lengths : RopeLengths ) -> RopeLengths:
+    return RopeLengths( (
+        current_rope_lengths[ 0 ] + delta_rope_lengths[ 0 ],
+        current_rope_lengths[ 1 ] + delta_rope_lengths[ 1 ]
+    ) )
 
 
-def make_plot_pack_from_motor_instructions_pack( motor_instructions_pack : MotorInstructionsPack ) -> PlotPack:
-    plotter = MockPlotter()
-    plot_pack = plotter.plot( motor_instructions_pack )
+def make_plot_pack_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack ) -> PlotPack:
+    current_rope_lengths = get_rope_lengths_for_point_in_board_space( get_initial_position() )
+    plot_pack = [ ]
+    for motor_instruction_path in motor_instructions_pack :
+        current_plot_path = [ ]
+        for motor_instruction in motor_instruction_path :
+
+            # compute plot point
+            delta_rope_lengths = get_delta_rope_lengths_for_motor_instruction( motor_instruction )
+            target_rope_lengths = get_target_rope_lengths( current_rope_lengths, delta_rope_lengths )
+            target_position = get_point_in_board_space_for_rope_lengths( target_rope_lengths )
+            plot_point = PlotPoint( ( target_position.x, target_position.y ) )
+
+            # update state and result
+            current_rope_lengths = target_rope_lengths
+            current_plot_path.append( plot_point )
+
+        plot_pack.append( current_plot_path )
     return plot_pack

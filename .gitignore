@@ -20,4 +20,4 @@
 Thumbs.db
 
 .venv/
-.pyc
+*.pyc

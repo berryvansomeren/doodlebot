@@ -3,7 +3,7 @@ import math
 
 from svgpathtools import svg2paths, Path
 
-from lego_wall_plotter.host.motor_instructions import PlotPack
+from lego_wall_plotter.host.base_types import PlotPack
 
 
 """
