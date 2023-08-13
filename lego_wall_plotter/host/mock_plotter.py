@@ -77,8 +77,8 @@ def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> B
 
 def get_delta_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction ) -> RopeLengths:
     return RopeLengths((
-        motor_instruction[ 0 ] * Constants.MM_PER_DEGREE,
-        motor_instruction[ 1 ] * Constants.MM_PER_DEGREE
+        motor_instruction[ 0 ] * Constants.MM_PER_DEGREE_LEFT,
+        motor_instruction[ 1 ] * Constants.MM_PER_DEGREE_RIGHT
     ))
 
 

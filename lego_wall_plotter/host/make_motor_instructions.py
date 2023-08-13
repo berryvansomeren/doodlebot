@@ -77,8 +77,8 @@ def get_delta_rope_lenghts(  current_rope_lengths : RopeLengths, target_rope_len
 
 def get_motor_instruction_for_delta_rope_lengths( delta_rope_lengths : RopeLengths ) -> MotorInstruction:
     return MotorInstruction((
-        delta_rope_lengths[ 0 ] / Constants.MM_PER_DEGREE,
-        delta_rope_lengths[ 1 ] / Constants.MM_PER_DEGREE
+        delta_rope_lengths[ 0 ] / Constants.MM_PER_DEGREE_LEFT,
+        delta_rope_lengths[ 1 ] / Constants.MM_PER_DEGREE_RIGHT
     ))
 
 
