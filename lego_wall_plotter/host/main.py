@@ -52,7 +52,7 @@ def make_motor_instructions(
 if __name__ == "__main__" :
     logging.basicConfig( level = logging.INFO )
     make_motor_instructions(
-        in_file_svg = '../../in/square.svg',
+        in_file_svg = '../../in/cake_topper_single_path.svg',
         out_file_preview_converted_svg = '../../out/1_preview_converted.svg',
         out_file_preview_motor_instructions = '../../out/2_preview_motor_instructions.svg',
         out_file_motor_instructions_pack = '../../out/3_motor_instructions.txt',

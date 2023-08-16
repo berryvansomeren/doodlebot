@@ -87,8 +87,8 @@ class LegoMotorController :
         )
 
     def move( self, motor_instruction ) :
-        # motor instructions describe a relative move in degrees,
-        # that is used to determine an absolute target motor position in degrees
+        # motor instructions describe in an absolute sense,
+        # what the degrees should be to be at a certain point.
         target_degrees_left, target_degrees_right = motor_instruction
 
         while True :
@@ -104,7 +104,7 @@ class LegoMotorController :
             if error_degrees <= Constants.POINT_REACHED_ERROR_ACCEPTANCE_DEGREES :
                 break
 
-            # we will first ignore the signs because it makes scaling proportionally easy
+            # we will first ignore the signs because it makes scaling proportionally easier
             abs_error_degrees_left = abs( error_degrees_left )
             abs_error_degrees_right = abs( error_degrees_right )
 
@@ -157,10 +157,9 @@ def plot_motor_instructions( motor_instructions_pack ) :
 
 
 # Put the robot in place on the board
-# measure the offset to the board
-# put those values in Constants
-# generate motor instructions
-# paste the new motor instructions inside the plotter code
+# measure the offset to the board and put those values in Constants
+# generate motor instructions with the main host script,
+# and paste the new motor instructions inside the plotter code
 # disconnect the hub from the lego robot, and connect it to the pc
 # upload your program to your hub
 # connect the hub again to the lego robot
