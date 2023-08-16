@@ -80,7 +80,7 @@ class LegoMotorController :
         self.motor_right.mode( Constants.MAGIC_MOTOR_MODE )
         self.start_pos_right = self.motor_right.get()[ 1 ]
 
-    def get_get_current_degrees( self ):
+    def get_current_degrees( self ):
         return (
             self.motor_left.get()[ 1 ] - self.start_pos_left,
             self.motor_right.get()[ 1 ] - self.start_pos_right
@@ -93,7 +93,7 @@ class LegoMotorController :
 
         while True :
             # determine current position in motor degrees
-            current_degrees_left, current_degrees_right = self.get_get_current_degrees()
+            current_degrees_left, current_degrees_right = self.get_current_degrees()
 
             # determine the error
             error_degrees_left = target_degrees_left - current_degrees_left
