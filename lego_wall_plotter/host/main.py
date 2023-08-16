@@ -15,12 +15,11 @@ def make_motor_instructions(
         out_file_preview_converted_svg : str,
         out_file_preview_motor_instructions : str,
         out_file_motor_instructions_pack : str,
-        sampling_distance : float = 40,
-        precision : int = 4,
+        sampling_distance : float = 5,
 ) -> None:
 
     # Take the SVG and convert it to our own format: PlotPack
-    plot_pack = convert_svg_file_to_plot_pack( in_file_svg, sampling_distance, precision )
+    plot_pack = convert_svg_file_to_plot_pack( in_file_svg, sampling_distance )
 
     # Create a preview of the converted SVG
     # ( This should be a piecewise linear approximation of the original )
@@ -53,7 +52,7 @@ def make_motor_instructions(
 if __name__ == "__main__" :
     logging.basicConfig( level = logging.INFO )
     make_motor_instructions(
-        in_file_svg = '../../in/heart.svg',
+        in_file_svg = '../../in/square.svg',
         out_file_preview_converted_svg = '../../out/1_preview_converted.svg',
         out_file_preview_motor_instructions = '../../out/2_preview_motor_instructions.svg',
         out_file_motor_instructions_pack = '../../out/3_motor_instructions.txt',

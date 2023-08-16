@@ -4,6 +4,7 @@ from lego_wall_plotter.host.constants import Constants
 from lego_wall_plotter.host.base_types import (
     MotorInstructionsPack,
     MotorInstruction,
+    MotorDegrees,
     PlotPack,
     PlotPoint,
     BoardPoint,
@@ -29,13 +30,29 @@ def distance( v1, v2 ) :
     )
 
 
-def get_initial_position() -> BoardPoint:
-    return BoardPoint(
+def get_initial_degrees() -> MotorDegrees:
+
+    pen_to_board_mm = (
         Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM
         + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM,
         Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM
-        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM,
+        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM
     )
+
+    rope_length_left = distance(
+        Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM,
+        pen_to_board_mm
+    )
+
+    rope_length_right = distance(
+        Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM,
+        pen_to_board_mm
+    )
+
+    degrees_left = rope_length_left / Constants.MM_PER_DEGREE
+    degrees_right = rope_length_right / Constants.MM_PER_DEGREE
+
+    return MotorDegrees(( degrees_left, degrees_right ))
 
 
 def get_rope_lengths_for_point_in_board_space( point_in_board_space : BoardPoint ) -> RopeLengths:
@@ -52,7 +69,7 @@ def get_rope_lengths_for_point_in_board_space( point_in_board_space : BoardPoint
 
 
 def convert_normalized_point_to_board_space( point : PlotPoint ) -> BoardPoint:
-    min_extent = min( Constants.CANVAS_SIZE_MM ) - 2 * Constants.CANVAS_PADDING_MM
+    min_extent = min( Constants.CANVAS_SIZE_MM ) - ( 2 * Constants.CANVAS_PADDING_MM )
     min_x = (0.5 * Constants.CANVAS_SIZE_MM[ 0 ]) - (0.5 * min_extent)
     min_y = (0.5 * Constants.CANVAS_SIZE_MM[ 1 ]) - (0.5 * min_extent)
 
@@ -68,22 +85,15 @@ def convert_normalized_point_to_board_space( point : PlotPoint ) -> BoardPoint:
     return point_in_board_space
 
 
-def get_delta_rope_lenghts(  current_rope_lengths : RopeLengths, target_rope_lengths : RopeLengths ) -> RopeLengths:
-    return RopeLengths((
-        target_rope_lengths[ 0 ] - current_rope_lengths[ 0 ],
-        target_rope_lengths[ 1 ] - current_rope_lengths[ 1 ]
-    ))
-
-
-def get_motor_instruction_for_delta_rope_lengths( delta_rope_lengths : RopeLengths ) -> MotorInstruction:
+def get_motor_instruction_for_rope_lengths( rope_lengths : RopeLengths, initial_degrees : MotorDegrees ) -> MotorInstruction:
     return MotorInstruction((
-        delta_rope_lengths[ 0 ] / Constants.MM_PER_DEGREE_LEFT,
-        delta_rope_lengths[ 1 ] / Constants.MM_PER_DEGREE_RIGHT
+        ( rope_lengths[ 0 ] / Constants.MM_PER_DEGREE ) - initial_degrees[ 0 ],
+        ( rope_lengths[ 1 ] / Constants.MM_PER_DEGREE ) - initial_degrees[ 1 ]
     ))
 
 
 def make_motor_instructions_for_plot_pack( plot_pack : PlotPack ) -> MotorInstructionsPack:
-    current_rope_lengths = get_rope_lengths_for_point_in_board_space( get_initial_position() )
+    initial_degrees = get_initial_degrees()
     motor_instructions_pack = [ ]
     for i_plot_path, plot_path in enumerate( plot_pack ):
         motor_instructions_path = [ ]
@@ -92,11 +102,9 @@ def make_motor_instructions_for_plot_pack( plot_pack : PlotPack ) -> MotorInstru
             # compute motor instructions
             target_position = convert_normalized_point_to_board_space( plot_point )
             target_rope_lengths = get_rope_lengths_for_point_in_board_space( target_position )
-            delta_rope_lengths = get_delta_rope_lenghts( current_rope_lengths, target_rope_lengths )
-            motor_instruction = get_motor_instruction_for_delta_rope_lengths( delta_rope_lengths )
+            motor_instruction = get_motor_instruction_for_rope_lengths( target_rope_lengths, initial_degrees )
 
-            # update state and result
-            current_rope_lengths = target_rope_lengths
+            # update result
             motor_instructions_path.append( motor_instruction )
 
         motor_instructions_pack.append( motor_instructions_path )

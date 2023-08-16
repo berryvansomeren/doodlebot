@@ -1,15 +1,16 @@
 import math
 
 from lego_wall_plotter.host.constants import Constants
-from lego_wall_plotter.host.make_motor_instructions import get_initial_position, get_rope_lengths_for_point_in_board_space
 from lego_wall_plotter.host.base_types import (
     MotorInstructionsPack,
     MotorInstruction,
+    MotorDegrees,
     PlotPack,
     PlotPoint,
     BoardPoint,
     RopeLengths
 )
+from lego_wall_plotter.host.make_motor_instructions import get_initial_degrees
 
 
 """
@@ -75,35 +76,26 @@ def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> B
         y + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ]
     )
 
-def get_delta_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction ) -> RopeLengths:
+def get_target_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction, initial_degrees : MotorDegrees ) -> RopeLengths:
     return RopeLengths((
-        motor_instruction[ 0 ] * Constants.MM_PER_DEGREE_LEFT,
-        motor_instruction[ 1 ] * Constants.MM_PER_DEGREE_RIGHT
+        ( motor_instruction[ 0 ] + initial_degrees[ 0 ] ) * Constants.MM_PER_DEGREE,
+        ( motor_instruction[ 1 ] + initial_degrees[ 1 ] ) * Constants.MM_PER_DEGREE
     ))
 
 
-def get_target_rope_lengths( current_rope_lengths : RopeLengths, delta_rope_lengths : RopeLengths ) -> RopeLengths:
-    return RopeLengths( (
-        current_rope_lengths[ 0 ] + delta_rope_lengths[ 0 ],
-        current_rope_lengths[ 1 ] + delta_rope_lengths[ 1 ]
-    ) )
-
-
 def make_plot_pack_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack ) -> PlotPack:
-    current_rope_lengths = get_rope_lengths_for_point_in_board_space( get_initial_position() )
+    initial_degrees = get_initial_degrees()
     plot_pack = [ ]
     for motor_instruction_path in motor_instructions_pack :
         current_plot_path = [ ]
         for motor_instruction in motor_instruction_path :
 
             # compute plot point
-            delta_rope_lengths = get_delta_rope_lengths_for_motor_instruction( motor_instruction )
-            target_rope_lengths = get_target_rope_lengths( current_rope_lengths, delta_rope_lengths )
+            target_rope_lengths = get_target_rope_lengths_for_motor_instruction( motor_instruction, initial_degrees )
             target_position = get_point_in_board_space_for_rope_lengths( target_rope_lengths )
             plot_point = PlotPoint( ( target_position.x, target_position.y ) )
 
-            # update state and result
-            current_rope_lengths = target_rope_lengths
+            # update result
             current_plot_path.append( plot_point )
 
         plot_pack.append( current_plot_path )

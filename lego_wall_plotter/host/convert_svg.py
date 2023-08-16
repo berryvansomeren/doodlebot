@@ -69,7 +69,7 @@ def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling_distance : flo
     return point_based_paths
 
 
-def make_normalized_paths( paths : PlotPack, n_digits : int ) -> PlotPack:
+def make_normalized_paths( paths : PlotPack ) -> PlotPack:
     logging.info( f"Normalizing paths." )
 
     # determine bounds
@@ -85,14 +85,25 @@ def make_normalized_paths( paths : PlotPack, n_digits : int ) -> PlotPack:
             min_y = min( min_y, y )
             max_y = max( max_y, y )
 
-    # rescale to [0, 1]
+    width = max_x - min_x
+    height = max_y - min_y
+    max_extent = max( width, height )
+
+    # rescale both dimensions the range [0, 1] while maintaining aspect ratio
+    # this means that the smaller dimensions will effectively use a range smaller than [0, 1]
     normalized_paths = []
     for index, path in enumerate( paths ) :
         logging.info( f"Normalizing path {index + 1}/{len( paths )}" )
         new_path = []
         for point in path :
-            new_x = round( ( point[ 0 ] - min_x ) / max_x, n_digits )
-            new_y = round( ( point[ 1 ] - min_y ) / max_y, n_digits )
+            normal_x = ( point[ 0 ] - min_x ) / ( max_x - min_x )
+            ratio_x = width / max_extent
+            new_x = ( normal_x * ratio_x ) + ( ( 1 - ratio_x ) / 2 )
+
+            normal_y = ( point[ 1 ] - min_y ) / ( max_y - min_y )
+            ratio_y = height / max_extent
+            new_y = ( normal_y * ratio_y ) + ( ( 1 - ratio_y ) / 2 )
+
             new_path.append( ( new_x, new_y ) )
         normalized_paths.append( new_path )
 
@@ -126,10 +137,10 @@ def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
     return result_sorted
 
 
-def convert_svg_file_to_plot_pack( file : str, sampling_distance : float, precision : int ) -> PlotPack:
+def convert_svg_file_to_plot_pack( file : str, sampling_distance : float ) -> PlotPack:
     # every path in the result will be a continuously connected series of points
     paths = get_continuous_paths_from_file( file )
     paths_point_based = make_plot_pack_from_svg_paths( paths, sampling_distance )
-    paths_normalized = make_normalized_paths( paths_point_based, precision )
+    paths_normalized = make_normalized_paths( paths_point_based )
     paths_sorted = sort_paths_by_successive_distance( paths_normalized )
     return paths_sorted

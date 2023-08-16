@@ -7,10 +7,9 @@ class Constants :
     MAX_DEG_PER_S = 100 / POWER_PER_DEGREE_PER_SECOND * POWER_MAX_PERCENTAGE
 
     # Motor settings for positioning
-    MM_PER_DEGREE_LEFT = 3760 / 137816
-    MM_PER_DEGREE_RIGHT = 3760 / 137816
+    MM_PER_DEGREE = 3760 / 137816
     POINT_REACHED_ERROR_ACCEPTANCE_MM = 1
-    POINT_REACHED_ERROR_ACCEPTANCE_DEGREES = POINT_REACHED_ERROR_ACCEPTANCE_MM / abs( MM_PER_DEGREE_LEFT )
+    POINT_REACHED_ERROR_ACCEPTANCE_DEGREES = POINT_REACHED_ERROR_ACCEPTANCE_MM / abs( MM_PER_DEGREE )
 
     # define our coordinate spaces
     # The board is a panel of wood which our anchors are nailed into
@@ -24,7 +23,7 @@ class Constants :
     RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = (865, 33)
     CANVAS_SIZE_MM = (210, 297)
     CANVAS_OFFSET_TO_BOARD_MM = (345, 335)
-    CANVAS_PADDING_MM = 2 * 20
+    CANVAS_PADDING_MM = 10
 
     # While we can compute for every point in "canvas-space" target degrees for our motors,
     # it can still be the case that the inner state of the motors is not completely calibrated to the same space

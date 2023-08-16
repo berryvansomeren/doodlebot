@@ -11,8 +11,8 @@ All motor instructions for the LEGO plotter are precomputed on the host!
 The motor instructions should be copied from the host and pasted into the code below.
 """
 
-MOTOR_INSTRUCTIONS_PACK = [[(144.7332418168044, -393.65550164696515), (305.6963572577011, 2892.0239699974736), (-533.741608897157, -40.17673055760645), (-2311.1561642707607, -197.6882853330934), (-583.1390327827055, -102.3061089583997), (-541.0005055457739, -298.09763932069285), (-409.2996309842711, -456.31895316345634), (-205.6545445716027, -551.6137458946487), (35.78940460516524, -567.0449992182388), (267.6393576257405, -494.673659503601), (450.7064563551162, -339.30329749513595), (554.5928966165299, -123.13713329138439), (125.16644051206191, -525.172914716584), (308.5324774254313, -472.2601188492152), (475.9648079795906, -301.67026842557436), (561.7905617756378, -75.34184817479472), (560.2262613651013, 167.07920341956776), (476.4393906244682, 379.4442820768291), (327.31941353900874, 524.9883421482384), (134.12766137071785, 581.2699052603172)]]
 
+MOTOR_INSTRUCTIONS_PACK = [[(144.73324181680437, -393.6555016469647), (450.42959907450495, 2498.368468350509), (-83.31200982265364, 2458.191737792902), (-2394.468174093414, 2260.5034524598086), (-2977.6072068761205, 2158.197343501408), (-3518.6077124218937, 1860.0997041807168), (-3927.9073434061647, 1403.7807510172606), (-4133.5618879777685, 852.1670051226101), (-4097.772483372602, 285.12200590436987), (-3830.133125746863, -209.5516535992283), (-3379.4266693917452, -548.8549510943667), (-2824.833772775215, -671.9920843857508), (-2699.667332263154, -1197.1649991023332), (-2391.134854837721, -1669.4251179515486), (-1915.1700468581294, -1971.0953863771247), (-1353.3794850824925, -2046.4372345519187), (-793.1532237173924, -1879.3580311323494), (-316.71383309292287, -1499.9137490555222), (10.605580446084787, -974.9254069072813), (144.73324181680437, -393.6555016469647)]]
 
 
 class Constants :
@@ -37,37 +37,9 @@ class Constants :
     MAX_DEG_PER_S = 100 / POWER_PER_DEGREE_PER_SECOND * POWER_MAX_PERCENTAGE
 
     # Motor settings for positioning
-    MM_PER_DEGREE_LEFT = 3760 / 137816
-    MM_PER_DEGREE_RIGHT = 3760 / 137816
+    MM_PER_DEGREE = 3760 / 137816
     POINT_REACHED_ERROR_ACCEPTANCE_MM = 1
-    POINT_REACHED_ERROR_ACCEPTANCE_DEGREES = POINT_REACHED_ERROR_ACCEPTANCE_MM / abs( MM_PER_DEGREE_LEFT )
-
-    # define our coordinate spaces
-    # The board is a panel of wood which our anchors are nailed into
-    # The canvas is a piece of paper taped to the board
-    # By setting a padding we modify the drawable space
-    # Note that rope lengths and therefore motor degrees always relative to the anchors
-    # while PlotPacks and its components are always within "drawable-space".
-    # For conversions, we often work via "board-space" as the global space
-    BOARD_SIZE_MM = (900, 1250)
-    LEFT_ANCHOR_OFFSET_TO_BOARD_MM = (45, 33)
-    RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = (865, 33)
-    CANVAS_SIZE_MM = (210, 297)
-    CANVAS_OFFSET_TO_BOARD_MM = (345, 335)
-    CANVAS_PADDING_MM = 2 * 20
-
-    # While we can compute for every point in "canvas-space" target degrees for our motors,
-    # it can still be the case that the inner state of the motors is not completely calibrated to the same space
-    # By measuring what the motor state is at the beginning of our program,
-    # and relating that to the measured position,
-    # we can calibrate the motor's internal values.
-    # We will measure a designated point on the lego robot itself, because that's easier to do every time.
-    # We have measured the offset of the pen with respect to that specific point, once before.
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 493
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 473
-    PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM = 0# mm
-    PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM = 22# mm
-
+    POINT_REACHED_ERROR_ACCEPTANCE_DEGREES = POINT_REACHED_ERROR_ACCEPTANCE_MM / abs( MM_PER_DEGREE )
     MAGIC_MOTOR_MODE = [ (1, 0), (2, 2), (3, 1), (0, 0) ]
 
 
@@ -75,41 +47,8 @@ def sleep( seconds ) :
     time.sleep( seconds )
 
 
-def beep() :
-    pass
-
-
-def distance( v1, v2 ) :
-    return math.sqrt(
-        ((v1[ 0 ] - v2[ 0 ]) ** 2) +
-        ((v1[ 1 ] - v2[ 1 ]) ** 2)
-    )
-
-
 def sign( v ) -> int :
     return (v > 0) - (v < 0)
-
-
-def get_initial_degrees() :
-    return (
-        (Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM
-        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM) / Constants.MM_PER_DEGREE_LEFT,
-        (Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM
-        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM) / Constants.MM_PER_DEGREE_RIGHT,
-    )
-
-
-def get_rope_lengths_for_point_in_board_space( point_in_board_space ) :
-    rope_length_left = distance(
-        Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM,
-        point_in_board_space
-    )
-
-    rope_length_right = distance(
-        Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM,
-        point_in_board_space
-    )
-    return rope_length_left, rope_length_right
 
 
 class LegoPenController :
@@ -118,17 +57,17 @@ class LegoPenController :
         self.motor.mode( Constants.MAGIC_MOTOR_MODE )
         self.stop_drawing()
 
-    def move_to_position( self, target_position ) :
+    def _move_to_position( self, target_position ) :
         dif = target_position - self.motor.get()[ 2 ]
         if abs( dif ) > 5 :
             self.motor.run_for_degrees( abs( dif ), round( math.copysign( Constants.PEN_MOTOR_SPEED, dif ) ) )
             sleep( 1 )
 
     def start_drawing( self ) :
-        self.move_to_position( Constants.PEN_DOWN )
+        self._move_to_position( Constants.PEN_DOWN )
 
     def stop_drawing( self ) :
-        self.move_to_position( Constants.PEN_UP )
+        self._move_to_position( Constants.PEN_UP )
 
 
 class LegoMotorController :
@@ -139,22 +78,15 @@ class LegoMotorController :
         self.motor_right = Constants.MOTOR_RIGHT.motor
         self.motor_right.mode( Constants.MAGIC_MOTOR_MODE )
 
-        self.initial_degrees = get_initial_degrees()
-
     def move( self, motor_instruction ) :
         # motor instructions describe a relative move in degrees,
         # that is used to determine an absolute target motor position in degrees
-        degrees_left, degrees_right = motor_instruction
-
-        current_degrees_left = self.motor_left.get()[ 1 ] + self.initial_degrees[ 0 ]
-        current_degrees_right = self.motor_right.get()[ 1 ] + self.initial_degrees[ 1 ]
-        target_degrees_left = current_degrees_left + degrees_left
-        target_degrees_right = current_degrees_right + degrees_right
+        target_degrees_left, target_degrees_right = motor_instruction
 
         while True :
             # determine current position
-            current_degrees_left = self.motor_left.get()[ 1 ] + self.initial_degrees[ 0 ]
-            current_degrees_right = self.motor_right.get()[ 1 ] + self.initial_degrees[ 1 ]
+            current_degrees_left = self.motor_left.get()[ 1 ]
+            current_degrees_right = self.motor_right.get()[ 1 ]
 
             # determine the error
             error_degrees_left = target_degrees_left - current_degrees_left
@@ -204,27 +136,26 @@ def plot_motor_instructions( motor_instructions_pack ) :
 
     for motor_instruction_path in motor_instructions_pack :
 
-        # Note: MotorInstructionsPack = list[ list[ MotorInstruction ] ]
-        # Note: MotorInstruction = tuple[ left_degrees : int, right_degrees : int ]
-
         # move to the first point of the path before starting to draw the rest
         motor_controller.move( motor_instruction_path[ 0 ] )
         pen_controller.start_drawing()
 
         # now draw the rest, while the pen is down
         for instruction in motor_instruction_path[ 1: ] :
-            beep()
             motor_controller.move( instruction )
-            beep()
 
         # move pen up before moving to the beginning of the next path
         pen_controller.stop_drawing()
         sleep( 2.0 )
 
 
-# just put the bot in place,
-# select the right program
-# and press play when ready to start!
-beep()
+# Put the robot in place on the board
+# measure the offset to the board
+# put those values in Constants
+# generate motor instructions
+# paste the new motor instructions inside the plotter code
+# disconnect the hub from the lego robot, and connect it to the pc
+# upload your program to your hub
+# connect the hub again to the lego robot
+# execute the program!
 plot_motor_instructions( MOTOR_INSTRUCTIONS_PACK )
-beep()
