@@ -34,9 +34,9 @@ class BoardPoint:
         # make sure the coordinates are valid
         for i, v in enumerate( [ self.x, self.y ] ) :
             assert (
-                Constants.CANVAS_OFFSET_TO_BOARD_MM[ i ]
+                0
                 <= v
-                < Constants.CANVAS_OFFSET_TO_BOARD_MM[ i ] + Constants.CANVAS_SIZE_MM[ i ]
+                < Constants.BOARD_SIZE_MM[ i ]
             )
 
 

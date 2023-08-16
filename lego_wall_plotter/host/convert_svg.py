@@ -4,7 +4,7 @@ import math
 from svgpathtools import svg2paths, Path
 
 from lego_wall_plotter.host.base_types import PlotPack
-
+from lego_wall_plotter.host.constants import Constants
 
 """
 Functions that help convert arbitrary SVG files to a format we can easily work with: PlotPack.
@@ -85,9 +85,18 @@ def make_normalized_paths( paths : PlotPack ) -> PlotPack:
             min_y = min( min_y, y )
             max_y = max( max_y, y )
 
-    width = max_x - min_x
-    height = max_y - min_y
-    max_extent = max( width, height )
+    source_width = max_x - min_x
+    source_height = max_y - min_y
+
+    target_width = Constants.CANVAS_SIZE_MM[ 0 ] - ( 2 * Constants.CANVAS_PADDING_MM )
+    target_height = Constants.CANVAS_SIZE_MM[ 1 ] - ( 2 * Constants.CANVAS_PADDING_MM )
+
+    scale_factor_x = target_width / source_width
+    scale_factor_y = target_height / source_height
+    scale_factor_fit = min( scale_factor_x, scale_factor_y )
+
+    new_width = source_width * scale_factor_fit
+    new_height = source_height * scale_factor_fit
 
     # rescale both dimensions the range [0, 1] while maintaining aspect ratio
     # this means that the smaller dimensions will effectively use a range smaller than [0, 1]
@@ -96,13 +105,12 @@ def make_normalized_paths( paths : PlotPack ) -> PlotPack:
         logging.info( f"Normalizing path {index + 1}/{len( paths )}" )
         new_path = []
         for point in path :
-            normal_x = ( point[ 0 ] - min_x ) / ( max_x - min_x )
-            ratio_x = width / max_extent
-            new_x = ( normal_x * ratio_x ) + ( ( 1 - ratio_x ) / 2 )
+            new_x = ( point[ 0 ] * scale_factor_fit )
+            new_y = ( point[ 1 ] * scale_factor_fit )
 
-            normal_y = ( point[ 1 ] - min_y ) / ( max_y - min_y )
-            ratio_y = height / max_extent
-            new_y = ( normal_y * ratio_y ) + ( ( 1 - ratio_y ) / 2 )
+            # we still need to center the coordinates
+            new_x = ( Constants.CANVAS_SIZE_MM[ 0 ] / 2 ) - ( new_width / 2 ) + new_x
+            new_y = ( Constants.CANVAS_SIZE_MM[ 1 ] / 2) - ( new_height / 2 ) + new_y
 
             new_path.append( ( new_x, new_y ) )
         normalized_paths.append( new_path )

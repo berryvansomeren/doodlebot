@@ -68,15 +68,15 @@ def get_rope_lengths_for_point_in_board_space( point_in_board_space : BoardPoint
     return RopeLengths(( rope_length_left, rope_length_right ))
 
 
-def convert_normalized_point_to_board_space( point : PlotPoint ) -> BoardPoint:
-    min_extent = min( Constants.CANVAS_SIZE_MM ) - ( 2 * Constants.CANVAS_PADDING_MM )
-    min_x = (0.5 * Constants.CANVAS_SIZE_MM[ 0 ]) - (0.5 * min_extent)
-    min_y = (0.5 * Constants.CANVAS_SIZE_MM[ 1 ]) - (0.5 * min_extent)
-
-    point_in_canvas_space = (
-        min_x + point[ 0 ] * min_extent,
-        min_y + point[ 1 ] * min_extent
-    )
+def convert_normalized_point_to_board_space( point_in_canvas_space : PlotPoint ) -> BoardPoint:
+    # min_extent = min( Constants.CANVAS_SIZE_MM ) - ( 2 * Constants.CANVAS_PADDING_MM )
+    # min_x = (0.5 * Constants.CANVAS_SIZE_MM[ 0 ]) - (0.5 * min_extent)
+    # min_y = (0.5 * Constants.CANVAS_SIZE_MM[ 1 ]) - (0.5 * min_extent)
+    #
+    # point_in_canvas_space = (
+    #     min_x + point[ 0 ] * min_extent,
+    #     min_y + point[ 1 ] * min_extent
+    # )
 
     point_in_board_space = BoardPoint(
         Constants.CANVAS_OFFSET_TO_BOARD_MM[ 0 ] + point_in_canvas_space[ 0 ],
