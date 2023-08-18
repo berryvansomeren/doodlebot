@@ -78,7 +78,6 @@ def _get_canvas() -> BoardPack:
 def make_preview_for_pack( pack, out_filename : str ) -> None:
     # create preview svg
     preview = [ ]
-    logging.info( f"Writing preview file of converted SVG to {out_filename}." )
     for path in pack :
         preview_p = Path()
         preview.append( preview_p )
@@ -88,7 +87,7 @@ def make_preview_for_pack( pack, out_filename : str ) -> None:
             p0 = p1
 
     disvg( paths = preview, filename = f"{getcwd()}/{out_filename}", margin_size = 0 )
-    logging.info( f"Writing preview file {out_filename} - DONE!" )
+    logging.info( f"Wrote preview file of converted SVG to {out_filename}." )
 
 
 def make_preview_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack, out_filename : str ) -> None:

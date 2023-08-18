@@ -1,4 +1,11 @@
 class Constants :
+    # note that sampling distance is not in actual board millimeters,
+    # but in the space of the original SVG
+    # For now we do not support scaling the svg before sampling
+    # so you just have to fiddle with this and make sure the quality check passes well enough later
+    SAMPLING_DISTANCE = 20
+    QUALITY_THRESHOLD_DISTANCE_VALUE = 2 # this is in actual board/canvas millimeters
+
     # Motor settings for power control
     POWER_MAX_PERCENTAGE = 1.0  # use only XX% of available motor power
     POWER_PER_DEGREE_PER_SECOND = 1 / 9.3  # factor to convert from desired deg/s to power that needs to be applied
@@ -18,8 +25,8 @@ class Constants :
     BOARD_SIZE_MM = ( 900, 1250 )
     LEFT_ANCHOR_OFFSET_TO_BOARD_MM = ( 45, 33 )
     RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = ( 865, 33 )
-    CANVAS_SIZE_MM = ( 210, 297 )
-    CANVAS_OFFSET_TO_BOARD_MM = ( 345, 335 )
+    CANVAS_SIZE_MM = ( 210 * 3, 297 * 2 )#( 210, 297 )
+    CANVAS_OFFSET_TO_BOARD_MM = ( 135, 337 )#( 345, 335 )
     CANVAS_PADDING_MM = 10
 
     # While we can compute for every point in "canvas-space" target degrees for our motors,
@@ -29,8 +36,8 @@ class Constants :
     # we can calibrate the motor's internal values.
     # We will measure a designated point on the lego robot itself, because that's easier to do every time.
     # We have measured the offset of the pen with respect to that specific point, once before.
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 493
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 473
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 450 # <- center top of middle A4 #493
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 335 # <- center top of middle A4 #473
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM = 0  # mm
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM = 22  # mm
 

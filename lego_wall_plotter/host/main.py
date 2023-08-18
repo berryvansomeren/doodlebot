@@ -1,5 +1,6 @@
 import logging
 
+from lego_wall_plotter.host.constants import Constants
 from lego_wall_plotter.host.convert_svg import convert_svg_file_to_canvas_pack
 from lego_wall_plotter.host.make_motor_instructions import make_motor_instructions_for_canvas_pack
 from lego_wall_plotter.host.make_preview import make_preview_for_motor_instructions, make_preview_for_pack
@@ -15,7 +16,7 @@ def make_motor_instructions(
         out_file_preview_converted_svg : str,
         out_file_preview_motor_instructions : str,
         out_file_motor_instructions_pack : str,
-        sampling_distance : float = 5,
+        sampling_distance : float = Constants.SAMPLING_DISTANCE,
 ) -> None:
 
     # Take the SVG and convert it to our own format: PlotPack
@@ -34,13 +35,14 @@ def make_motor_instructions(
 
     # Write the MotorInstructionsTuplePack to a file for easy copying and archiving reasons
     logging.info( "=" * 64 )
-    logging.info( f"Writing final motor instructions to file {out_file_motor_instructions_pack}" )
     with open( out_file_motor_instructions_pack, 'w' ) as instructions_file:
         instructions_file.write( str( motor_instructions_pack ) )
+    logging.info( f"Wrote final motor instructions to file {out_file_motor_instructions_pack}" )
 
     # Write the MotorInstructionsTuplePack to the console
-    logging.info( "=" * 64 )
+    logging.info( "Instructions:" )
     logging.info( str( motor_instructions_pack ) )
+    logging.info( "=" * 64 )
 
     logging.info( "Done!" )
     # You should now manually copy the content of <out_file_motor_instructions_pack>
@@ -51,9 +53,10 @@ def make_motor_instructions(
 
 if __name__ == "__main__" :
     logging.basicConfig( level = logging.INFO )
+    name = "buffalo"
     make_motor_instructions(
-        in_file_svg = '../../in/cake_topper_single_path.svg',
-        out_file_preview_converted_svg = '../../out/1_preview_converted.svg',
-        out_file_preview_motor_instructions = '../../out/2_preview_motor_instructions.svg',
-        out_file_motor_instructions_pack = '../../out/3_motor_instructions.txt',
+        in_file_svg = f'../../in/{name}.svg',
+        out_file_preview_converted_svg = f'../../out/1_{name}_preview_converted.svg',
+        out_file_preview_motor_instructions = f'../../out/2_{name}_preview_motor_instructions.svg',
+        out_file_motor_instructions_pack = f'../../out/3_{name}_motor_instructions.txt',
     )

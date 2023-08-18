@@ -110,8 +110,8 @@ def _make_canvas_pack_from_svg_paths( paths : SVGPathPack ) -> CanvasPack:
         logging.info( f"Normalizing path {index + 1}/{len( paths )}" )
         new_path = []
         for point in path :
-            new_x = ( point[ 0 ] * scale_factor_fit )
-            new_y = ( point[ 1 ] * scale_factor_fit )
+            new_x = ( ( point[ 0 ] - min_x ) * scale_factor_fit )
+            new_y = ( ( point[ 1 ] - min_y ) * scale_factor_fit )
 
             # Also to center the coordinates wihtin the target space
             new_x = ( Constants.CANVAS_SIZE_MM[ 0 ] / 2 ) - ( new_width / 2 ) + new_x
@@ -150,10 +150,33 @@ def _sort_paths_by_successive_distance( paths : CanvasPack ) -> CanvasPack:
     return result_sorted
 
 
+def _check_canvas_pack_quality( canvas_pack : CanvasPack ) -> None:
+    last_point = CanvasPoint(
+        Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM
+        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM
+        - Constants.CANVAS_OFFSET_TO_BOARD_MM[ 0 ],
+        Constants.INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM
+        + Constants.PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM
+        - Constants.CANVAS_OFFSET_TO_BOARD_MM[ 1 ],
+    )
+
+    logging.info( "-" * 64 )
+    logging.info( "Checking the quality of produced paths" )
+    for i_path, path in enumerate( canvas_pack ):
+        for i_point, point in enumerate( path ):
+            d = distance( point, last_point )
+            if d < Constants.QUALITY_THRESHOLD_DISTANCE_VALUE:
+                logging.info( f"Point {i_point + 1}/{len(path)} in Path {i_path + 1}/{len(canvas_pack)} defines a move of distance {d}")
+            last_point = point
+    logging.info( "Done" )
+    logging.info( "-" * 64 )
+
+
 def convert_svg_file_to_canvas_pack( file : str, sampling_distance : float ) -> CanvasPack:
     # every path in the result will be a continuously connected series of points
     paths = _get_continuous_paths_from_file( file )
     paths_point_based = _clean_svg_paths( paths, sampling_distance )
-    paths_normalized = _make_canvas_pack_from_svg_paths( paths_point_based )
-    paths_sorted = _sort_paths_by_successive_distance( paths_normalized )
-    return paths_sorted
+    canvas_pack = _make_canvas_pack_from_svg_paths( paths_point_based )
+    canvas_pack_sorted = _sort_paths_by_successive_distance( canvas_pack )
+    _check_canvas_pack_quality( canvas_pack_sorted )
+    return canvas_pack_sorted
