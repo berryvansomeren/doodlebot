@@ -1,8 +1,8 @@
 import logging
 
-from lego_wall_plotter.host.convert_svg import convert_svg_file_to_plot_pack
-from lego_wall_plotter.host.make_motor_instructions import make_motor_instructions_for_plot_pack
-from lego_wall_plotter.host.make_preview import make_preview_for_motor_instructions, make_preview_for_plot_pack
+from lego_wall_plotter.host.convert_svg import convert_svg_file_to_canvas_pack
+from lego_wall_plotter.host.make_motor_instructions import make_motor_instructions_for_canvas_pack
+from lego_wall_plotter.host.make_preview import make_preview_for_motor_instructions, make_preview_for_pack
 
 
 """
@@ -19,14 +19,14 @@ def make_motor_instructions(
 ) -> None:
 
     # Take the SVG and convert it to our own format: PlotPack
-    plot_pack = convert_svg_file_to_plot_pack( in_file_svg, sampling_distance )
+    canvas_pack = convert_svg_file_to_canvas_pack( in_file_svg, sampling_distance )
 
     # Create a preview of the converted SVG
     # ( This should be a piecewise linear approximation of the original )
-    make_preview_for_plot_pack( plot_pack, out_file_preview_converted_svg )
+    make_preview_for_pack( canvas_pack, out_file_preview_converted_svg )
 
     # Convert the PlotPack to a MotorInstructionsPack
-    motor_instructions_pack = make_motor_instructions_for_plot_pack( plot_pack )
+    motor_instructions_pack = make_motor_instructions_for_canvas_pack( canvas_pack )
 
     # Create a preview of what the MotorInstructionsPack should produce
     # ( should be an approximation of the previous preview, but with some error from rounding and motor limitations )

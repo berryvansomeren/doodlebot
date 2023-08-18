@@ -63,6 +63,8 @@ class LegoPenController :
             self.motor.run_for_degrees( abs( dif ), round( math.copysign( Constants.PEN_MOTOR_SPEED, dif ) ) )
             sleep( 1 )
 
+        # self.motor.run_to_position( Constants.PEN_DOWN )
+
     def start_drawing( self ) :
         self._move_to_position( Constants.PEN_DOWN )
 

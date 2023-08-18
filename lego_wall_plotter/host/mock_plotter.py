@@ -1,15 +1,15 @@
 import math
 
-from lego_wall_plotter.host.constants import Constants
 from lego_wall_plotter.host.base_types import (
     MotorInstructionsPack,
     MotorInstruction,
     MotorDegrees,
-    PlotPack,
+    BoardPack,
     PlotPoint,
     BoardPoint,
     RopeLengths
 )
+from lego_wall_plotter.host.constants import Constants
 from lego_wall_plotter.host.make_motor_instructions import get_initial_degrees
 
 
@@ -22,7 +22,7 @@ it is a model of what we think the robot should work like, if we could ignore pw
 """
 
 
-def get_intersections( x0, y0, r0, x1, y1, r1 ) :
+def _get_intersections( x0, y0, r0, x1, y1, r1 ) :
     # circle 1: (x0, y0), radius r0
     # circle 2: (x1, y1), radius r1
 
@@ -51,7 +51,7 @@ def get_intersections( x0, y0, r0, x1, y1, r1 ) :
         return (x3, y3, x4, y4)
 
 
-def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> BoardPoint:
+def _get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> BoardPoint:
     # Note that we are working in anchor space, not board space!!!
     left_anchor = (0, 0)
     right_anchor = (
@@ -59,7 +59,7 @@ def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> B
         Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ] - Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ],
     )
 
-    intersections = get_intersections(
+    intersections = _get_intersections(
         *left_anchor, rope_lengths[0],
         *right_anchor, rope_lengths[1]
     )
@@ -76,27 +76,26 @@ def get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> B
         y + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ]
     )
 
-def get_target_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction, initial_degrees : MotorDegrees ) -> RopeLengths:
+def _get_target_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction, initial_degrees : MotorDegrees ) -> RopeLengths:
     return RopeLengths((
         ( motor_instruction[ 0 ] + initial_degrees[ 0 ] ) * Constants.MM_PER_DEGREE,
         ( motor_instruction[ 1 ] + initial_degrees[ 1 ] ) * Constants.MM_PER_DEGREE
     ))
 
 
-def make_plot_pack_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack ) -> PlotPack:
+def make_plot_pack_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack ) -> BoardPack:
     initial_degrees = get_initial_degrees()
-    plot_pack = [ ]
+    board_pack = [ ]
     for motor_instruction_path in motor_instructions_pack :
-        current_plot_path = [ ]
+        board_path = [ ]
         for motor_instruction in motor_instruction_path :
 
             # compute plot point
-            target_rope_lengths = get_target_rope_lengths_for_motor_instruction( motor_instruction, initial_degrees )
-            target_position = get_point_in_board_space_for_rope_lengths( target_rope_lengths )
-            plot_point = PlotPoint( ( target_position.x, target_position.y ) )
+            target_rope_lengths = _get_target_rope_lengths_for_motor_instruction( motor_instruction, initial_degrees )
+            target_position = _get_point_in_board_space_for_rope_lengths( target_rope_lengths )
 
             # update result
-            current_plot_path.append( plot_point )
+            board_path.append( target_position )
 
-        plot_pack.append( current_plot_path )
-    return plot_pack
+        board_pack.append( board_path )
+    return board_pack

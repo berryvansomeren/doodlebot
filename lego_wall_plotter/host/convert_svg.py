@@ -3,17 +3,20 @@ import math
 
 from svgpathtools import svg2paths, Path
 
-from lego_wall_plotter.host.base_types import PlotPack
+from lego_wall_plotter.host.base_types import CanvasPack, CanvasPoint
 from lego_wall_plotter.host.constants import Constants
+from lego_wall_plotter.host.distance import distance
+
 
 """
 Functions that help convert arbitrary SVG files to a format we can easily work with: PlotPack.
 """
 
-#todo: This code would be easier to work with, if we would first translate the SVG to world-space(board-space)
+
+SVGPathPack = list[list[tuple[ float, float ]]]
 
 
-def get_continuous_paths_from_file( file ) -> list[ Path ]:
+def _get_continuous_paths_from_file( file ) -> list[ Path ]:
 
     # path elements can be discontinuous
     # here we pre-filter them to make every single Path element continuous
@@ -30,7 +33,7 @@ def get_continuous_paths_from_file( file ) -> list[ Path ]:
     return paths_continuous
 
 
-def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling_distance : float ) -> PlotPack:
+def _clean_svg_paths( paths : list[ Path ], sampling_distance : float ) -> SVGPathPack:
 
     # SVGs can contain complex things like Arcs and Curves,
     # Here we convert them all to sequences of points
@@ -59,9 +62,9 @@ def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling_distance : flo
                     last_slope = slope
 
             if should_replace:
-                path_result[-1] = (x, y)
+                path_result[-1] = ( x, y )
             else:
-                path_result.append((x, y))
+                path_result.append( ( x, y ) )
 
         logging.info( f"Parsing path {index + 1}/{len( paths )} - DONE. The path has {len(path_result)} points." )
         point_based_paths.append( path_result )
@@ -69,7 +72,7 @@ def make_plot_pack_from_svg_paths( paths : list[ Path ], sampling_distance : flo
     return point_based_paths
 
 
-def make_normalized_paths( paths : PlotPack ) -> PlotPack:
+def _make_canvas_pack_from_svg_paths( paths : SVGPathPack ) -> CanvasPack:
     logging.info( f"Normalizing paths." )
 
     # determine bounds
@@ -85,6 +88,9 @@ def make_normalized_paths( paths : PlotPack ) -> PlotPack:
             min_y = min( min_y, y )
             max_y = max( max_y, y )
 
+    # determine scale factor to transform the coordinates to *fit* the target space, while retaining aspect ratio
+    # Also see: https://stackoverflow.com/questions/14219552/scale-coordinates-while-maintaining-the-aspect-ratio-in-ios
+
     source_width = max_x - min_x
     source_height = max_y - min_y
 
@@ -98,8 +104,7 @@ def make_normalized_paths( paths : PlotPack ) -> PlotPack:
     new_width = source_width * scale_factor_fit
     new_height = source_height * scale_factor_fit
 
-    # rescale both dimensions the range [0, 1] while maintaining aspect ratio
-    # this means that the smaller dimensions will effectively use a range smaller than [0, 1]
+    # Apply the transformation to evert point
     normalized_paths = []
     for index, path in enumerate( paths ) :
         logging.info( f"Normalizing path {index + 1}/{len( paths )}" )
@@ -108,18 +113,18 @@ def make_normalized_paths( paths : PlotPack ) -> PlotPack:
             new_x = ( point[ 0 ] * scale_factor_fit )
             new_y = ( point[ 1 ] * scale_factor_fit )
 
-            # we still need to center the coordinates
+            # Also to center the coordinates wihtin the target space
             new_x = ( Constants.CANVAS_SIZE_MM[ 0 ] / 2 ) - ( new_width / 2 ) + new_x
             new_y = ( Constants.CANVAS_SIZE_MM[ 1 ] / 2) - ( new_height / 2 ) + new_y
 
-            new_path.append( ( new_x, new_y ) )
+            new_path.append( CanvasPoint( new_x, new_y ) )
         normalized_paths.append( new_path )
 
     logging.info( f"Normalizing paths - DONE!" )
     return normalized_paths
 
 
-def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
+def _sort_paths_by_successive_distance( paths : CanvasPack ) -> CanvasPack:
     # sort paths by distance between end of path n and start of path n+1
     # the reason to do this is to minimize travel distance,
     # which minimizes time, and room for error
@@ -130,11 +135,11 @@ def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
     result_sorted = [ paths.pop() ]
     while len( paths ) > 0 :
         logging.info( "Sort paths, {} left.".format( len( paths ) ) )
-        last_added = result_sorted[ -1 ]
+        last_point_added = result_sorted[ -1 ][ -1 ]
 
         def distance_to_last( p ) :
-            return math.sqrt(
-                (last_added[ -1 ][ 0 ] - p[ 0 ][ 0 ]) ** 2 + (last_added[ -1 ][ 1 ] - p[ 0 ][ 1 ]) ** 2 )
+            start_of_path = p[ 0 ]
+            return distance( last_point_added, start_of_path )
 
         closest_path = sorted( paths, key = distance_to_last )[ 0 ]
 
@@ -145,10 +150,10 @@ def sort_paths_by_successive_distance( paths : PlotPack ) -> PlotPack:
     return result_sorted
 
 
-def convert_svg_file_to_plot_pack( file : str, sampling_distance : float ) -> PlotPack:
+def convert_svg_file_to_canvas_pack( file : str, sampling_distance : float ) -> CanvasPack:
     # every path in the result will be a continuously connected series of points
-    paths = get_continuous_paths_from_file( file )
-    paths_point_based = make_plot_pack_from_svg_paths( paths, sampling_distance )
-    paths_normalized = make_normalized_paths( paths_point_based )
-    paths_sorted = sort_paths_by_successive_distance( paths_normalized )
+    paths = _get_continuous_paths_from_file( file )
+    paths_point_based = _clean_svg_paths( paths, sampling_distance )
+    paths_normalized = _make_canvas_pack_from_svg_paths( paths_point_based )
+    paths_sorted = _sort_paths_by_successive_distance( paths_normalized )
     return paths_sorted

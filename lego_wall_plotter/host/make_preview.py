@@ -4,7 +4,7 @@ from os import getcwd
 from svgpathtools import Path, Line, disvg
 
 from lego_wall_plotter.host.constants import Constants
-from lego_wall_plotter.host.base_types import MotorInstructionsPack, PlotPack
+from lego_wall_plotter.host.base_types import MotorInstructionsPack, BoardPack, BoardPoint
 from lego_wall_plotter.host.mock_plotter import make_plot_pack_for_motor_instructions
 
 
@@ -15,18 +15,18 @@ by checking the previews beforehand.
 """
 
 
-def get_board():
+def _get_board() -> BoardPack:
     board_paths = [[
-        ( 0, 0 ),
-        (Constants.BOARD_SIZE_MM[0 ], 0),
-        (Constants.BOARD_SIZE_MM[0 ], Constants.BOARD_SIZE_MM[1 ]),
-        ( 0, Constants.BOARD_SIZE_MM[1 ]),
-        ( 0, 0 )
+        BoardPoint( 0, 0 ),
+        BoardPoint( Constants.BOARD_SIZE_MM[ 0 ], 0 ),
+        BoardPoint( Constants.BOARD_SIZE_MM[ 0 ], Constants.BOARD_SIZE_MM[ 1 ] ),
+        BoardPoint( 0, Constants.BOARD_SIZE_MM[1 ]),
+        BoardPoint( 0, 0 )
     ]]
     return board_paths
 
 
-def get_anchors():
+def _get_anchors() -> BoardPack:
     anchor_padding = 2
     anchor_padding_offsets = [
         ( -anchor_padding, -anchor_padding ),
@@ -38,7 +38,7 @@ def get_anchors():
     left_anchor_paths = []
     for offset in anchor_padding_offsets:
         left_anchor_paths.append(
-            (
+            BoardPoint(
                 Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ] + offset[ 0 ],
                 Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ] + offset[ 1 ]
             )
@@ -46,7 +46,7 @@ def get_anchors():
     right_anchor_paths = [ ]
     for offset in anchor_padding_offsets :
         right_anchor_paths.append(
-            (
+            BoardPoint(
                 Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ] + offset[ 0 ],
                 Constants.RIGHT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ] + offset[ 1 ]
             )
@@ -55,36 +55,36 @@ def get_anchors():
     return anchor_paths
 
 
-def get_canvas():
+def _get_canvas() -> BoardPack:
     canvas_paths = [ [
-        Constants.CANVAS_OFFSET_TO_BOARD_MM,
-        (
+        BoardPoint( *Constants.CANVAS_OFFSET_TO_BOARD_MM ),
+        BoardPoint(
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 0 ] + Constants.CANVAS_SIZE_MM[ 0 ],
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 1 ]
         ),
-        (
+        BoardPoint(
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 0 ] + Constants.CANVAS_SIZE_MM[ 0 ],
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 1 ] + Constants.CANVAS_SIZE_MM[ 1 ]
         ),
-        (
+        BoardPoint(
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 0 ],
             Constants.CANVAS_OFFSET_TO_BOARD_MM[ 1 ] + Constants.CANVAS_SIZE_MM[ 1 ]
         ),
-        Constants.CANVAS_OFFSET_TO_BOARD_MM
+        BoardPoint( *Constants.CANVAS_OFFSET_TO_BOARD_MM )
     ] ]
     return canvas_paths
 
 
-def make_preview_for_plot_pack( plot_pack : PlotPack, out_filename : str ) -> None:
+def make_preview_for_pack( pack, out_filename : str ) -> None:
     # create preview svg
     preview = [ ]
     logging.info( f"Writing preview file of converted SVG to {out_filename}." )
-    for plot_path in plot_pack :
+    for path in pack :
         preview_p = Path()
         preview.append( preview_p )
-        p0 = plot_path[ 0 ]
-        for p1 in plot_path[ 1 : ] :
-            preview_p.append( Line( complex( p0[0], p0[1] ), complex( p1[0], p1[1] ) ) )
+        p0 = path[ 0 ]
+        for p1 in path[ 1 : ] :
+            preview_p.append( Line( complex( p0.x, p0.y ), complex( p1.x, p1.y ) ) )
             p0 = p1
 
     disvg( paths = preview, filename = f"{getcwd()}/{out_filename}", margin_size = 0 )
@@ -92,12 +92,12 @@ def make_preview_for_plot_pack( plot_pack : PlotPack, out_filename : str ) -> No
 
 
 def make_preview_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack, out_filename : str ) -> None:
-    board = get_board()
-    anchors = get_anchors()
-    canvas = get_canvas()
+    board = _get_board()
+    anchors = _get_anchors()
+    canvas = _get_canvas()
     plot = make_plot_pack_for_motor_instructions( motor_instructions_pack )
 
     # Combine all previous components to define the full scene
     full_plot_pack = board + anchors + canvas + plot
 
-    make_preview_for_plot_pack( full_plot_pack, out_filename )
+    make_preview_for_pack( full_plot_pack, out_filename )

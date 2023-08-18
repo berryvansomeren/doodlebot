@@ -1,5 +1,3 @@
-
-
 class Constants :
     # Motor settings for power control
     POWER_MAX_PERCENTAGE = 1.0  # use only XX% of available motor power
@@ -14,15 +12,14 @@ class Constants :
     # define our coordinate spaces
     # The board is a panel of wood which our anchors are nailed into
     # The canvas is a piece of paper taped to the board
-    # By setting a padding we modify the drawable space
-    # Note that rope lengths and therefore motor degrees always relative to the anchors
-    # while PlotPacks and its components are always within "drawable-space".
-    # For conversions, we often work via "board-space" as the global space
-    BOARD_SIZE_MM = (900, 1250)
-    LEFT_ANCHOR_OFFSET_TO_BOARD_MM = (45, 33)
-    RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = (865, 33)
-    CANVAS_SIZE_MM = (210, 297)
-    CANVAS_OFFSET_TO_BOARD_MM = (345, 335)
+    # By setting a padding we modify the drawable space on the canvas
+    # Note that rope lengths and therefore motor degrees always relate to the anchors
+    # and should not be confused with board space
+    BOARD_SIZE_MM = ( 900, 1250 )
+    LEFT_ANCHOR_OFFSET_TO_BOARD_MM = ( 45, 33 )
+    RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = ( 865, 33 )
+    CANVAS_SIZE_MM = ( 210, 297 )
+    CANVAS_OFFSET_TO_BOARD_MM = ( 345, 335 )
     CANVAS_PADDING_MM = 10
 
     # While we can compute for every point in "canvas-space" target degrees for our motors,
