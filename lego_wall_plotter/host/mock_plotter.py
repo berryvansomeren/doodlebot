@@ -5,7 +5,6 @@ from lego_wall_plotter.host.base_types import (
     MotorInstruction,
     MotorDegrees,
     BoardPack,
-    PlotPoint,
     BoardPoint,
     RopeLengths
 )
@@ -75,6 +74,7 @@ def _get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> 
         x + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 0 ],
         y + Constants.LEFT_ANCHOR_OFFSET_TO_BOARD_MM[ 1 ]
     )
+
 
 def _get_target_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction, initial_degrees : MotorDegrees ) -> RopeLengths:
     return RopeLengths((

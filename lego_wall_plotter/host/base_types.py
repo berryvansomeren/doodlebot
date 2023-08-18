@@ -2,10 +2,12 @@ from typing import NewType
 
 from lego_wall_plotter.host.constants import Constants
 
+
 """
 These are the datastructures we like working with as a fundamental basis of our workflow.
 Some classes contain additional validation to ensure valid coordinate space logic
 """
+
 
 # ----------------------------------------------------------------
 class PlotPoint:
