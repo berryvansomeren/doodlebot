@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import NewType
 
 from lego_wall_plotter.host.constants import Constants
@@ -17,7 +18,7 @@ class PlotPoint:
 
         # make sure the coordinates are valid
         for i, v in enumerate( [ self.x, self.y ] ) :
-            assert ( 0 <= v < 1 )
+            assert ( 0 <= v <= 1 )
 
 PlotPath = list[ PlotPoint ]
 PlotPack = list[ PlotPath ]
@@ -30,7 +31,9 @@ class CanvasPoint:
 
         # make sure the coordinates are valid
         for i, v in enumerate( [ self.x, self.y ] ) :
-            assert ( 0 <= v < Constants.CANVAS_SIZE_MM[ i ] )
+            # adding the +1 to add some slack to deal with minor errors,
+            # resulting from the scaling factor applied to SVGs
+            assert ( 0 - 1 <= v < Constants.CANVAS_SIZE_MM[ i ] + 1 )
 
 CanvasPath = list[ CanvasPoint ]
 CanvasPack = list[ CanvasPath ]
@@ -43,7 +46,6 @@ class BoardPoint:
 
         # make sure the coordinates are valid
         for i, v in enumerate( [ self.x, self.y ] ) :
-            # Note here that the max bound is inclusive to allow for drawing the borders
             assert ( 0 <= v <= Constants.BOARD_SIZE_MM[ i ] )
 
 BoardPath = list[ BoardPoint ]
@@ -54,8 +56,10 @@ MotorDegrees = NewType( 'MotorDegrees', tuple[ float, float ] )
 RopeLengths = NewType( 'RopeLengths', tuple[ float, float ] )
 
 # ----------------------------------------------------------------
-# These types will be used in device code, so we stick to basic tuples for simpler typing
+@dataclass
+class MotorInstruction:
+    target_degrees_left : float
+    target_degrees_right : float
 
-MotorInstruction = tuple[ int, int ]
 MotorInstructionsPath = list[ MotorInstruction ]
 MotorInstructionsPack = list[ MotorInstructionsPath ]

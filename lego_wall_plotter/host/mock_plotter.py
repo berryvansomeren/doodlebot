@@ -21,6 +21,30 @@ it is a model of what we think the robot should work like, if we could ignore pw
 """
 
 
+class MotorInstructionReader:
+    def __init__(self, filename):
+        self._file = open( filename, 'r' )
+        self.n_paths = int( self._file.readline().strip() )
+
+    def paths(self):
+        for _ in range( self.n_paths ):
+            yield PathReader( self._file )
+        return
+
+
+class PathReader:
+    def __init__(self, file):
+        self._file = file
+
+    def instructions(self):
+        while True:
+            line = self._file.readline().strip()
+            if not line:
+                return
+            instruction = MotorInstruction( *map( float, line.split(',') ) )
+            yield instruction
+
+
 def _get_intersections( x0, y0, r0, x1, y1, r1 ) :
     # circle 1: (x0, y0), radius r0
     # circle 2: (x1, y1), radius r1
@@ -78,17 +102,20 @@ def _get_point_in_board_space_for_rope_lengths( rope_lengths : RopeLengths ) -> 
 
 def _get_target_rope_lengths_for_motor_instruction( motor_instruction : MotorInstruction, initial_degrees : MotorDegrees ) -> RopeLengths:
     return RopeLengths((
-        ( motor_instruction[ 0 ] + initial_degrees[ 0 ] ) * Constants.MM_PER_DEGREE,
-        ( motor_instruction[ 1 ] + initial_degrees[ 1 ] ) * Constants.MM_PER_DEGREE
+        ( motor_instruction.target_degrees_left + initial_degrees[ 0 ] ) * Constants.MM_PER_DEGREE,
+        ( motor_instruction.target_degrees_right + initial_degrees[ 1 ] ) * Constants.MM_PER_DEGREE
     ))
 
 
-def make_plot_pack_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack ) -> BoardPack:
+def make_plot_pack_for_motor_instructions_file( motor_instructions_file_path : str ) -> BoardPack:
+
+    instruction_reader = MotorInstructionReader( motor_instructions_file_path )
+
     initial_degrees = get_initial_degrees()
     board_pack = [ ]
-    for motor_instruction_path in motor_instructions_pack :
+    for motor_instruction_path in instruction_reader.paths():
         board_path = [ ]
-        for motor_instruction in motor_instruction_path :
+        for motor_instruction in motor_instruction_path.instructions():
 
             # compute plot point
             target_rope_lengths = _get_target_rope_lengths_for_motor_instruction( motor_instruction, initial_degrees )

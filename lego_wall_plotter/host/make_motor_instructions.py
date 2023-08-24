@@ -54,10 +54,10 @@ def convert_canvas_point_to_board_point( point_in_canvas_space : CanvasPoint ) -
 
 
 def get_motor_instruction_for_rope_lengths( rope_lengths : RopeLengths, initial_degrees : MotorDegrees ) -> MotorInstruction:
-    return MotorInstruction((
+    return MotorInstruction(
         ( rope_lengths[ 0 ] / Constants.MM_PER_DEGREE ) - initial_degrees[ 0 ],
         ( rope_lengths[ 1 ] / Constants.MM_PER_DEGREE ) - initial_degrees[ 1 ]
-    ))
+    )
 
 
 def make_motor_instructions_for_canvas_pack( canvas_pack : CanvasPack ) -> MotorInstructionsPack:

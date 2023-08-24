@@ -4,8 +4,8 @@ from os import getcwd
 from svgpathtools import Path, Line, disvg
 
 from lego_wall_plotter.host.constants import Constants
-from lego_wall_plotter.host.base_types import MotorInstructionsPack, BoardPack, BoardPoint
-from lego_wall_plotter.host.mock_plotter import make_plot_pack_for_motor_instructions
+from lego_wall_plotter.host.base_types import BoardPack, BoardPoint
+from lego_wall_plotter.host.mock_plotter import make_plot_pack_for_motor_instructions_file
 
 
 """
@@ -90,11 +90,11 @@ def make_preview_for_pack( pack, out_filename : str ) -> None:
     logging.info( f"Wrote preview file of converted SVG to {out_filename}." )
 
 
-def make_preview_for_motor_instructions( motor_instructions_pack : MotorInstructionsPack, out_filename : str ) -> None:
+def make_preview_for_motor_instructions( motor_instructions_file : str, out_filename : str ) -> None:
     board = _get_board()
     anchors = _get_anchors()
     canvas = _get_canvas()
-    plot = make_plot_pack_for_motor_instructions( motor_instructions_pack )
+    plot = make_plot_pack_for_motor_instructions_file( motor_instructions_file )
 
     # Combine all previous components to define the full scene
     full_plot_pack = board + anchors + canvas + plot

@@ -51,6 +51,36 @@ def sign( v ) -> int :
     return (v > 0) - (v < 0)
 
 
+class MotorInstruction:
+    def __init__( self, target_degrees_left, target_degrees_right ):
+        self.target_degrees_left = target_degrees_left
+        self.target_degrees_right = target_degrees_right
+
+
+class MotorInstructionReader:
+    def __init__(self, filename):
+        self._file = open( filename, 'r' )
+        self.n_paths = int( self._file.readline().strip() )
+
+    def paths(self):
+        for _ in range( self.n_paths ):
+            yield PathReader( self._file )
+        return
+
+
+class PathReader:
+    def __init__(self, file):
+        self._file = file
+
+    def instructions(self):
+        while True:
+            line = self._file.readline().strip()
+            if not line:
+                return
+            instruction = MotorInstruction( *map( float, line.split(',') ) )
+            yield instruction
+
+
 class LegoPenController :
     def __init__( self ) :
         self.motor = Constants.MOTOR_PEN.motor
@@ -139,18 +169,21 @@ class LegoMotorController :
         self.motor_right.brake()
 
 
-def plot_motor_instructions( motor_instructions_pack ) :
+def plot_motor_instructions( motor_instruction_reader ) :
+
     pen_controller = LegoPenController()
     motor_controller = LegoMotorController()
 
-    for motor_instruction_path in motor_instructions_pack :
+    for motor_instruction_path in motor_instruction_reader.paths():
 
         # move to the first point of the path before starting to draw the rest
-        motor_controller.move( motor_instruction_path[ 0 ] )
+        instruction_generator = motor_instruction_path.instructions()
+        first_point = next( instruction_generator )
+        motor_controller.move( first_point )
         pen_controller.start_drawing()
 
         # now draw the rest, while the pen is down
-        for instruction in motor_instruction_path[ 1: ] :
+        for instruction in instruction_generator:
             motor_controller.move( instruction )
 
         # move pen up before moving to the beginning of the next path
@@ -166,4 +199,4 @@ def plot_motor_instructions( motor_instructions_pack ) :
 # upload your program to your hub
 # connect the hub again to the lego robot
 # execute the program!
-plot_motor_instructions( MOTOR_INSTRUCTIONS_PACK )
+plot_motor_instructions( MotorInstructionReader( '' ) )

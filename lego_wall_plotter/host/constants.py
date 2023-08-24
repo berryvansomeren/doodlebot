@@ -3,7 +3,7 @@ class Constants :
     # but in the space of the original SVG
     # For now we do not support scaling the svg before sampling
     # so you just have to fiddle with this and make sure the quality check passes well enough later
-    SAMPLING_DISTANCE = 20
+    SAMPLING_DISTANCE = 10
     QUALITY_THRESHOLD_DISTANCE_VALUE = 2 # this is in actual board/canvas millimeters
 
     # Motor settings for power control
@@ -27,7 +27,7 @@ class Constants :
     RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = ( 865, 33 )
     CANVAS_SIZE_MM = ( 210 * 3, 297 * 2 )#( 210, 297 )
     CANVAS_OFFSET_TO_BOARD_MM = ( 135, 337 )#( 345, 335 )
-    CANVAS_PADDING_MM = 10
+    CANVAS_PADDING_MM = 20 # will be applie don all sides so *2 in any dimension
 
     # While we can compute for every point in "canvas-space" target degrees for our motors,
     # it can still be the case that the inner state of the motors is not completely calibrated to the same space

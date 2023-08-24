@@ -8,8 +8,8 @@ packages = [{include = "lego_wall_plotter"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-svgwrite = "^1.4.3"
 svgpathtools = "^1.6.0"
+rshell = "^0.0.31"
 
 
 [build-system]
