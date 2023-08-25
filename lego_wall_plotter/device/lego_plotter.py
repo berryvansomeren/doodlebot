@@ -3,6 +3,7 @@ import time
 
 import hub
 
+
 """
 LEGO Plotter
 
@@ -10,9 +11,6 @@ I tried to keep the lego plotter as simple as possible.
 All motor instructions for the LEGO plotter are precomputed on the host!
 The motor instructions should be copied from the host and pasted into the code below.
 """
-
-
-MOTOR_INSTRUCTIONS_PACK = [[(144.73324181680437, -393.6555016469647), (450.42959907450495, 2498.368468350509), (-83.31200982265364, 2458.191737792902), (-2394.468174093414, 2260.5034524598086), (-2977.6072068761205, 2158.197343501408), (-3518.6077124218937, 1860.0997041807168), (-3927.9073434061647, 1403.7807510172606), (-4133.5618879777685, 852.1670051226101), (-4097.772483372602, 285.12200590436987), (-3830.133125746863, -209.5516535992283), (-3379.4266693917452, -548.8549510943667), (-2824.833772775215, -671.9920843857508), (-2699.667332263154, -1197.1649991023332), (-2391.134854837721, -1669.4251179515486), (-1915.1700468581294, -1971.0953863771247), (-1353.3794850824925, -2046.4372345519187), (-793.1532237173924, -1879.3580311323494), (-316.71383309292287, -1499.9137490555222), (10.605580446084787, -974.9254069072813), (144.73324181680437, -393.6555016469647)]]
 
 
 class Constants :
@@ -121,15 +119,13 @@ class LegoMotorController :
     def move( self, motor_instruction ) :
         # motor instructions describe in an absolute sense,
         # what the degrees should be to be at a certain point.
-        target_degrees_left, target_degrees_right = motor_instruction
-
         while True :
             # determine current position in motor degrees
             current_degrees_left, current_degrees_right = self.get_current_degrees()
 
             # determine the error
-            error_degrees_left = target_degrees_left - current_degrees_left
-            error_degrees_right = target_degrees_right - current_degrees_right
+            error_degrees_left = motor_instruction.target_degrees_left - current_degrees_left
+            error_degrees_right = motor_instruction.target_degrees_right - current_degrees_right
 
             # check if we reached our target
             error_degrees = math.sqrt( error_degrees_left ** 2 + error_degrees_right ** 2 )
@@ -199,4 +195,4 @@ def plot_motor_instructions( motor_instruction_reader ) :
 # upload your program to your hub
 # connect the hub again to the lego robot
 # execute the program!
-plot_motor_instructions( MotorInstructionReader( '' ) )
+plot_motor_instructions( MotorInstructionReader( 'custom/motor_instructions.txt' ) )

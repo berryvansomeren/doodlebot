@@ -3,7 +3,7 @@ class Constants :
     # but in the space of the original SVG
     # For now we do not support scaling the svg before sampling
     # so you just have to fiddle with this and make sure the quality check passes well enough later
-    SAMPLING_DISTANCE = 10
+    SAMPLING_DISTANCE = 5
     QUALITY_THRESHOLD_DISTANCE_VALUE = 2 # this is in actual board/canvas millimeters
 
     # Motor settings for power control
@@ -36,8 +36,8 @@ class Constants :
     # we can calibrate the motor's internal values.
     # We will measure a designated point on the lego robot itself, because that's easier to do every time.
     # We have measured the offset of the pen with respect to that specific point, once before.
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 450 # <- center top of middle A4 #493
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 335 # <- center top of middle A4 #473
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 450 # <- center top of middle A4
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 335 # <- center top of middle A4
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM = 0  # mm
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM = 22  # mm
 

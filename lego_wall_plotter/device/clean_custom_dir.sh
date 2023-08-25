@@ -1,0 +1,1 @@
+ampy --port COM3 rmdir custom

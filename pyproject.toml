@@ -10,6 +10,7 @@ packages = [{include = "lego_wall_plotter"}]
 python = "^3.10"
 svgpathtools = "^1.6.0"
 rshell = "^0.0.31"
+adafruit-ampy = "^1.1.0"
 
 
 [build-system]
