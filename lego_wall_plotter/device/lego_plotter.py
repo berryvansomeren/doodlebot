@@ -153,7 +153,6 @@ class LegoMotorController :
 
         # target reached!
         self.brake()
-        sleep( 0.1 )
 
     def set_degree_per_second( self, left, right ) :
         self.motor_left.pwm( round( left * Constants.POWER_PER_DEGREE_PER_SECOND ) )
@@ -184,7 +183,6 @@ def plot_motor_instructions( motor_instruction_reader ) :
 
         # move pen up before moving to the beginning of the next path
         pen_controller.stop_drawing()
-        sleep( 2.0 )
 
 
 # Put the robot in place on the board

@@ -61,9 +61,9 @@ def make_motor_instructions(
 if __name__ == "__main__" :
     logging.basicConfig( level = logging.INFO )
     projects_root_directory = f'../../out/'
-    name = "tree"
+    name = "nature"
     make_motor_instructions(
         in_path_svg =  f'../../in/{name}.svg',
         projects_root_directory = projects_root_directory,
-        project_name = name
+        project_name = f"{name}"
     )

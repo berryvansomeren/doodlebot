@@ -25,9 +25,9 @@ class Constants :
     BOARD_SIZE_MM = ( 900, 1250 )
     LEFT_ANCHOR_OFFSET_TO_BOARD_MM = ( 45, 33 )
     RIGHT_ANCHOR_OFFSET_TO_BOARD_MM = ( 865, 33 )
-    CANVAS_SIZE_MM = ( 210 * 3, 297 * 2 )#( 210, 297 )
-    CANVAS_OFFSET_TO_BOARD_MM = ( 135, 337 )#( 345, 335 )
-    CANVAS_PADDING_MM = 20 # will be applie don all sides so *2 in any dimension
+    CANVAS_SIZE_MM = ( 500, 700 ) # A4 = ( 210, 297 )
+    CANVAS_OFFSET_TO_BOARD_MM = ( 200, 330 )#( 345, 335 )
+    CANVAS_PADDING_MM = 100 # will be applied on all sides so *2 in any dimension
 
     # While we can compute for every point in "canvas-space" target degrees for our motors,
     # it can still be the case that the inner state of the motors is not completely calibrated to the same space
@@ -37,7 +37,7 @@ class Constants :
     # We will measure a designated point on the lego robot itself, because that's easier to do every time.
     # We have measured the offset of the pen with respect to that specific point, once before.
     INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_X_MM = 450 # <- center top of middle A4
-    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 335 # <- center top of middle A4
+    INITIAL_POSITION_MEASURE_POINT_RELATIVE_TO_BOARD_Y_MM = 330 # <- center top of middle A4
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_X_MM = 0  # mm
     PEN_POSITION_RELATIVE_TO_MEASURE_POINT_Y_MM = 22  # mm
 
