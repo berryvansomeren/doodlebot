@@ -9,7 +9,7 @@ So, I quickly made a much simpler version of the code using only Lego Mindstorms
 It worked by deciding for every piece of linear path, which motor had to run at max speed, how the speed of the other motor had to be scaled relatively, and for how long both motors had to run. 
 However, I found out that when going up against gravity, the robot would undershoot targets, and when going down with gravity, the robot would overshoot targets. 
 Then, I finally understood why Marco Schulte's code had this feedback loop that keeps checking the progress towards a target, and adjusts accordingly. 
-I also found out that some of the functions that were used in the original code were undocumented. 
+I also found out that some of the functions that were used in the original code were undocumented in the mindstorms library. 
 I was able to find more information about those functions [thanks to Anton's Mindstorms](https://www.antonsmindstorms.com/2021/01/14/advanced-undocumented-python-in-spike-prime-and-mindstorms-hubs/).
 
 I then rewrote the entire thing in a way that minimized the amount of code on the device, and maximized precomputation of plotter instructions and creation of previews. 
