@@ -17,22 +17,18 @@ This created in a workflow that allowed me to quickly catch any errors in normal
 I did not really change anything in the design of the lego construction of the robot. 
 I only added a few pieces to make the frame just a tad more robust. Really, Marco Schulte's design for the plotter is absolutely perfect! 
 
-## Gallery
+## Images
 
 <div align="center">
-    <div >
-        <a href="https://github.com/berryvansomeren/toucan/assets/6871825/d40b691e-e336-4a30-a128-b2d619c4e5a7">
-            <img src="./doc/doodlebot_elephant.jpg" width="75%">
-        </a>
-    </div>
-    <div>
-        <a href="https://github.com/berryvansomeren/toucan/assets/6871825/08b851b3-d0eb-4a4a-a4c0-a49f6dffece8">
-            <img src="./doc/doodlebot_nature.jpg" width="50%">
-        </a>
-    </div>
-    <div>
-        <a href="https://github.com/berryvansomeren/toucan/assets/6871825/17162b60-0fcf-4686-b48d-2760f5141289">
-            <img src="./doc/doodlebot_tree.jpg" width="75%">
-        </a>
-    </div>
+    <img src="./doc/doodlebot_elephant.jpg" width="75%">
+    <img src="./doc/doodlebot_nature.jpg" width="50%">
+    <img src="./doc/doodlebot_tree.jpg" width="75%">
 </div>
+
+
+## Videos
+
+[doodlebot_elephant.mp4](doc%2Fdoodlebot_elephant.mp4)  
+[doodlebot_nature.mp4](doc%2Fdoodlebot_nature.mp4)  
+[doodlebot_tree.mp4](doc%2Fdoodlebot_tree.mp4)  
+
