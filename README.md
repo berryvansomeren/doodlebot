@@ -1,5 +1,7 @@
 # Doodlebot: A Lego Wall Plotter
 
+(Also see my blogpost [**here**](https://www.berryvansomeren.com/posts/doodlebot))
+
 By chance, I came across [this lego wall plotter by Marco Schulte](https://voot.de/projects/lego-wallplotter/).
 It reminded me of the Lego Mindstorms project which was my first encounter with programming, 
 and I really wanted to recreate this awesome project. 
@@ -28,7 +30,14 @@ I only added a few pieces to make the frame just a tad more robust. Really, Marc
 
 ## Videos
 
-[doodlebot_elephant.mp4](doc%2Fdoodlebot_elephant.mp4)  
-[doodlebot_nature.mp4](doc%2Fdoodlebot_nature.mp4)  
-[doodlebot_tree.mp4](doc%2Fdoodlebot_tree.mp4)  
-
+<div align="center">
+    <a href="https://www.berryvansomeren.com/posts/doodlebot/doodlebot_elephant.mp4">
+        <img src="./doc/doodlebot_elephant_video_preview.png" width="75%">
+    </a>
+    <a href="https://www.berryvansomeren.com/posts/doodlebot/doodlebot_nature.mp4">
+        <img src="./doc/doodlebot_nature_video_preview.png" width="50%">
+    </a>
+    <a href="https://www.berryvansomeren.com/posts/doodlebot/doodlebot_tree.mp4">
+        <img src="./doc/doodlebot_tree_video_preview.png" width="50%">
+    </a>
+</div>
