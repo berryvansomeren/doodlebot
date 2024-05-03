@@ -1,6 +1,6 @@
 # Doodlebot: A Lego Wall Plotter
 
-(Also see my blogpost [**here**](https://www.berryvansomeren.com/posts/doodlebot))
+**Also see my blogpost [HERE](https://www.berryvansomeren.com/posts/doodlebot)**
 
 By chance, I came across [this lego wall plotter by Marco Schulte](https://voot.de/projects/lego-wallplotter/).
 It reminded me of the Lego Mindstorms project which was my first encounter with programming, 
